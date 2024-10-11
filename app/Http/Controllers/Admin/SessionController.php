@@ -41,7 +41,7 @@ class SessionController extends Controller
         $session = Session::create($request->all());
 
         if ($request->input('audio', false)) {
-            $session->addMedia(storage_path('tmp/uploads/' . basename($request->input('audio'))))->toMediaCollection('audio');
+            $session->addMedia(storage_path('tmp/uploads/' . basename($request->input('audio'))))->toMediaCollection('audio', 's3', 'audio');
         }
 
         if ($media = $request->input('ck-media', false)) {

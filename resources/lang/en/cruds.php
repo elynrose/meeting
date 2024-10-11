@@ -109,6 +109,7 @@ return [
             'total_tasks_helper'   => ' ',
             'tokens_used'          => 'Tokens Used',
             'tokens_used_helper'   => ' ',
+            'recording'            => 'Recording',
         ],
     ],
     'todo' => [

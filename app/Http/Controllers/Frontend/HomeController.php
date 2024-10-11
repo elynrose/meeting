@@ -1,11 +1,13 @@
 <?php
 
 namespace App\Http\Controllers\Frontend;
+use App\Models\Session;
 
 class HomeController
 {
     public function index()
     {
-        return view('frontend.home');
+        $sessions = Session::all();
+        return view('frontend.home', compact('sessions'));
     }
 }

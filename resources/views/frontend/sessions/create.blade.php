@@ -2,7 +2,7 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-12">
+        <div class="col-md-6">
 
             <div class="card">
                 <div class="card-header">
@@ -23,6 +23,7 @@
                             @endif
                             <span class="help-block">{{ trans('cruds.session.fields.name_helper') }}</span>
                         </div>
+                        <!--
                         <div class="form-group">
                             <label for="audio">{{ trans('cruds.session.fields.audio') }}</label>
                             <div class="needsclick dropzone" id="audio-dropzone">
@@ -118,7 +119,10 @@
                             @endif
                             <span class="help-block">{{ trans('cruds.session.fields.user_helper') }}</span>
                         </div>
+-->
                         <div class="form-group">
+                            <input type="hidden" name="user_id" value="{{ Auth::id() }}">
+                            <input type="hidden" name="status" value="New">
                             <button class="btn btn-danger" type="submit">
                                 {{ trans('global.save') }}
                             </button>

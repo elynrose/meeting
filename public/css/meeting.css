@@ -1,0 +1,118 @@
+body {
+    background-color: #f4f7f6;
+    font-family: 'Arial', sans-serif;
+    }
+ 
+    .card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    }
+    
+    .card-header {
+    background-color: #fff;
+    border-bottom: none;
+    font-weight: bold;
+    font-size: 1.25rem;
+    color: #333;
+    }
+    
+    .card-body {
+    background-color: #fff;
+    padding: 20px;
+    }
+    
+    .btn {
+    border-radius: 30px;
+    padding: 10px 20px;
+    }
+    
+    .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+    }
+    
+    .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    }
+    
+    .todo-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+    cursor: move;
+    }
+    
+    .todo-item:last-child {
+    border-bottom: none;
+    }
+    
+    .todo-item a {
+    cursor: pointer;
+    color: #007bff;
+    text-decoration: underline;
+    }
+    
+    .todo-item a:hover {
+    color: #0056b3;
+    }
+    
+    .modal-header {
+    border-bottom: none;
+    }
+    
+    .modal-footer {
+    border-top: none;
+    }
+    
+    /* Summary Styles */
+    .summary-text {
+    min-height: 190px;
+    max-height: 190px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    transition: max-height 0.3s ease;
+    }
+    
+    .summary-text.expanded {
+    max-height: none;
+    z-index: 999;
+    position:absolute;
+    }
+    
+    /* Read More Link */
+    .read-more {
+    display: inline-block;
+    margin:5px 0 ;
+    cursor: pointer;
+    color: #007bff;
+    }
+    
+    .read-more:hover {
+    color: #0056b3;
+    }
+    
+    /* User thumbnails*/
+    ul#thumbnail {
+    display: flex;
+    list-style-type: none;
+    padding: 0;
+    }
+    
+    #thumbnail>li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    margin-right: 10px;
+    }
+    
+    #thumbnail>li>img {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    margin-right: 5px;
+    
+    }

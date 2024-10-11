@@ -13,6 +13,10 @@ use Gate;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Storage;
+use App\Models\GetAudioFile;
+
+
 
 class SessionController extends Controller
 {
@@ -38,18 +42,78 @@ class SessionController extends Controller
 
     public function store(StoreSessionRequest $request)
     {
-        $session = Session::create($request->all());
-
-        if ($request->input('audio', false)) {
-            $session->addMedia(storage_path('tmp/uploads/' . basename($request->input('audio'))))->toMediaCollection('audio');
-        }
+        $session = Session::create(
+            [
+                'name' => $request->name,
+                'user_id' => auth()->user()->id,
+                'status' => 'New',
+            ]
+        );
 
         if ($media = $request->input('ck-media', false)) {
             Media::whereIn('id', $media)->update(['model_id' => $session->id]);
         }
 
-        return redirect()->route('frontend.sessions.index');
+        return redirect()->route('frontend.session.recorder', ['id' => $session->id]);
     }
+
+
+    public function upload(Request $request)
+    {
+        if($request->has('id')) {
+            $session = Session::find($request->id);
+        } else {
+            return response()->json(['error' => 'No session ID provided.'], 400);
+        }
+
+        if ($request->audio) {
+
+            $request->validate([
+                'audio' => 'required|file|mimes:mp3,mp4,wav,ogg,m4a,webm',
+            ]);
+            
+
+            //Get the audio file contents
+            $audio = file_get_contents($request->audio);
+
+            //create the file name
+            $audioFileName = 'audio_' . time() . '.mp3';
+
+            //save the file to the storage
+            Storage::disk('s3')->put('audio/' . $audioFileName, $audio, 'public');
+            
+            //Get the file path
+            $audioUrl = Storage::disk('s3')->url($audioFileName);
+           
+            //update the session with the audio file
+            $session->audio_url = $audioUrl;
+            
+            //Save to the session
+            $session->save();
+
+            /*--------------------------------------------------------------------
+            Get the signed audio file path from amazon and transcibe with openai api
+            Log the result
+            */
+
+             $getAudioFile = new GetAudioFile();
+
+            // Get the pre-signed URL for the file
+            $signedUrl = $getAudioFile->getFileFromS3($audioUrl);
+
+            //Log the result
+            \Log::info('Signed URL: ' . $signedUrl);
+
+
+            //--------------------------------------------------------------------
+
+            return response()->json(['success' => 'Audio file uploaded.'], 200);
+        } else {
+            return response()->json(['error' => 'No audio file provided.'], 400);
+        }
+    }
+    
+    
 
     public function edit(Session $session)
     {
@@ -119,5 +183,14 @@ class SessionController extends Controller
         $media         = $model->addMediaFromRequest('upload')->toMediaCollection('ck-media');
 
         return response()->json(['id' => $media->id, 'url' => $media->getUrl()], Response::HTTP_CREATED);
+    }
+
+    public function recorder(Request $request)
+    {
+        abort_if(Gate::denies('session_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $session = Session::find($request->id);
+
+        return view('frontend.sessions.recorder', compact('session'));
     }
 }
