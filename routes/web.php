@@ -83,6 +83,9 @@ Route::group(['as' => 'frontend.', 'namespace' => 'Frontend', 'middleware' => ['
     Route::resource('sessions', 'SessionController');
     Route::get('session/recorder/{id}', 'SessionController@recorder')->name('session.recorder');
     Route::post('session/upload', 'SessionController@upload')->name('session.upload');
+    Route::get('check-updates/{id}', 'SessionController@checkUpdates')->name('checkUpdates');
+    Route::post('check-session-status/{id}', 'SessionController@checkSessionStatus')->name('checkSessionStatus');
+
     // Todo
     Route::delete('todos/destroy', 'TodoController@massDestroy')->name('todos.massDestroy');
     Route::resource('todos', 'TodoController');

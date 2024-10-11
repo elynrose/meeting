@@ -44,8 +44,9 @@ class GetAudioFile extends Model
             $signedUrl = (string) $request->getUri();
             $publicUrl = str_replace($s3Client->getEndpoint(), "https://{$bucket}.s3.amazonaws.com", $signedUrl);
 
-            // Return the public URL
+            // Return the public URL to transcriber in commands folder
             return $publicUrl;
+
         } catch (AwsException $e) {
             // Handle the error
             return 'Error: ' . $e->getMessage();

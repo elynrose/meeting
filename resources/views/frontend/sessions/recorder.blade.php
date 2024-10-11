@@ -31,14 +31,17 @@
 <!-- Recorder Card -->
 <div class="col-md-4">
 <div class="card">
-<div class="card-header">
-Recorder
-</div>
+
 <div class="card-body text-center">
-<button id="recordButton" data-id="{{ Request::segment(3) }}" class="btn btn-secondary">Record</button>
-<button id="pauseButton" class="btn btn-secondary" disabled>Pause</button>
-<button id="stopButton" class="btn btn-danger" disabled>Stop</button>
-<p id="status" class="mt-3">Press "Record" to start recording.</p>
+    <div class="mt-4">
+<button id="recordButton" data-id="{{ Request::segment(3) }}" class="btn btn-secondary btn-sm">Record</button>
+<button id="pauseButton" class="btn btn-secondary btn-sm" disabled>Pause</button>
+<button id="stopButton" class="btn btn-danger btn-sm" disabled>Stop</button>
+</div>
+@if($audio_url)
+<div class="mt-3"><audio id="audioPlayer" src="{{ $audio_url }}" controls class="audioPlayer"></audio></div>
+@endif
+<p id="status" class="mt-3">{{ $session->status ?? 'Press "Record" to start recording.'}}</p>
 </div>
 </div>
 </div>
@@ -50,10 +53,14 @@ Recorder
 Summary
 </div>
 <div class="card-body">
-<a href="#" id="readMore" class="read-more">Read more</a> | <a href="#">Edit</a>
-<p id="summaryText">
-Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+<a href="#" id="readMore" class="read-more">Read more</a> | <a href="#" data-toggle="modal" data-target="#originalTextModal">Original Text</a> | <a href="#"><i class="fas fa-edit"></i> Edit</a>
 
+<p id="summaryText" class="summaryDiv">
+@if($session->summary)
+{{ $session->summary }}
+@else
+No summary available.
+@endif
 
 </p>
 </div>
@@ -166,6 +173,24 @@ To-Do List (Completed)
 </div>
 
    
+</div>
+
+
+<!-- Modal for Original Text -->
+<div class="modal fade" id="originalTextModal" tabindex="-1" role="dialog" aria-labelledby="originalTextModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="originalTextModalLabel">Original Text</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="transcriptionText">{{ $session->transcription ?? 'No original text available.' }}</p>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 @section('scripts')
@@ -284,58 +309,82 @@ const recordButton = document.getElementById('recordButton');
 const pauseButton = document.getElementById('pauseButton');
 const stopButton = document.getElementById('stopButton');
 const statusText = document.getElementById('status');
-
 // When the "Record" button is clicked
 recordButton.addEventListener('click', async () => {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-
-        mediaRecorder.start();
-        statusText.textContent = 'Recording...';
-
-        // Enable and disable the buttons as needed
-        recordButton.disabled = true;
-        pauseButton.disabled = false;
-        stopButton.disabled = false;
-
-        // Collect audio data chunks as they are available
-        mediaRecorder.addEventListener('dataavailable', event => {
-            audioChunks.push(event.data);
-        });
-
-        mediaRecorder.addEventListener('stop', () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-            const formData = new FormData();
-            formData.append('audio', audioBlob, 'audio_recording.wav'); // Ensure the file has a name
-            formData.append('id', {{Request::segment(3)}}); // Ensure the file has a name
-
-
-            $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                url: '{{ route('frontend.session.upload') }}', // Use the correct route
-                type: 'POST',
-                data: formData,
-                processData: false, // Prevent jQuery from automatically transforming the data
-                contentType: false, // Let the browser set the content type automatically
-                success: function(response) {
-                    console.log(response);
-                    statusText.textContent = 'Audio uploaded successfully!';
-                },
-                error: function(xhr, status, error) {
-                    console.error('Upload error:', xhr.responseText);
-                    statusText.textContent = 'Error uploading audio.';
+    const sessionId = {{ Request::segment(3) }};
+    
+    // Check if the session status is "New"
+    $.ajax({
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        url: `/check-session-status/${sessionId}`,
+        type: 'POST',
+        success: async function(response) {
+            if (response.status !== 'New') {
+                // Ask the user if they want to erase the previous recording and start over
+                const userConfirmed = confirm('A previous recording exists. Do you want to erase it and start over?');
+                if (!userConfirmed) {
+                    return;
                 }
-            });
+            } else {
+                statusText.textContent = 'Starting new recording...';
+            }
+            
+            // Proceed with recording
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
 
-        });
-    } catch (error) {
-        console.error('Error accessing microphone:', error);
-        statusText.textContent = 'Error accessing microphone.';
-    }
+                mediaRecorder.start();
+                statusText.textContent = 'Recording...';
+
+                // Enable and disable the buttons as needed
+                recordButton.disabled = true;
+                pauseButton.disabled = false;
+                stopButton.disabled = false;
+
+                // Collect audio data chunks as they are available
+                mediaRecorder.addEventListener('dataavailable', event => {
+                    audioChunks.push(event.data);
+                });
+
+                mediaRecorder.addEventListener('stop', () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const formData = new FormData();
+                    formData.append('audio', audioBlob, 'audio_recording.wav');
+                    formData.append('id', sessionId);
+
+                    $.ajax({
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        url: '{{ route('frontend.session.upload') }}',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function(response) {
+                            console.log(response);
+                            statusText.textContent = 'Processing...';
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Upload error:', xhr.responseText);
+                            statusText.textContent = 'Error uploading audio.';
+                        }
+                    });
+                });
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                statusText.textContent = 'Error accessing microphone.';
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error checking session status:', xhr.responseText);
+            statusText.textContent = 'Error checking session status.';
+        }
+    });
 });
 
 // When the "Pause" button is clicked
@@ -364,6 +413,44 @@ stopButton.addEventListener('click', () => {
         pauseButton.textContent = 'Pause'; // Reset pause button text
     }
 });
+</script>
+<script>
+$(document).ready(function() {
+    const statusText = document.getElementById('status');
+    // Extract session ID from the URL
+    const sessionId = {{ Request::segment(3) }};
 
-  </script>
+    // Function to check for updates
+    function checkForUpdates() {
+        $.ajax({
+            url: `/check-updates/${sessionId}`,
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            success: function(data) {
+
+                statusText.textContent = 'Transcribed';
+                // Update the content of the divs if there are any changes
+                if (data.transcription) {
+                    $('#transcriptionText').text(data.transcription);
+                }
+                if (data.summary) {
+                    $('#summaryText').text(data.summary);
+                }
+                console.log('Checked for updates:', data);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching updates:', xhr.responseText);
+            }
+        });
+    }
+
+    // Periodically check for updates every 5 seconds
+    setInterval(checkForUpdates, 30000);
+});
+</script>
+
+
+
 @endsection

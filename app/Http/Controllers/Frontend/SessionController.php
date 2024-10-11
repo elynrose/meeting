@@ -18,6 +18,8 @@ use App\Models\GetAudioFile;
 
 
 
+
+
 class SessionController extends Controller
 {
     use MediaUploadingTrait;
@@ -87,25 +89,10 @@ class SessionController extends Controller
            
             //update the session with the audio file
             $session->audio_url = $audioUrl;
+            $session->status = 'New';
             
             //Save to the session
             $session->save();
-
-            /*--------------------------------------------------------------------
-            Get the signed audio file path from amazon and transcibe with openai api
-            Log the result
-            */
-
-             $getAudioFile = new GetAudioFile();
-
-            // Get the pre-signed URL for the file
-            $signedUrl = $getAudioFile->getFileFromS3($audioUrl);
-
-            //Log the result
-            \Log::info('Signed URL: ' . $signedUrl);
-
-
-            //--------------------------------------------------------------------
 
             return response()->json(['success' => 'Audio file uploaded.'], 200);
         } else {
@@ -191,6 +178,42 @@ class SessionController extends Controller
 
         $session = Session::find($request->id);
 
-        return view('frontend.sessions.recorder', compact('session'));
+        $getAudioFile = new GetAudioFile;
+        $audio_url = $getAudioFile->getFileFromS3($session->audio_url);
+        if(!$audio_url){
+            $audio_url = null;
+        }
+
+        return view('frontend.sessions.recorder', compact('session', 'audio_url'));
+    }
+
+
+    public function checkUpdates(Request $request)
+    {
+        $sessionId = $request->id;
+        
+        // Fetch the latest transcription and summary from the database
+        $session = Session::where('id', $sessionId)->first();
+        $summary = $session->summary;
+        $transcription = $session->transcription;
+
+        return response()->json([
+            'transcription' => $transcription ? $transcription : null,
+            'summary' => $summary ? $summary : null,
+        ]);
+    }
+
+
+    public function checkSessionStatus(Request $request)
+    {
+        $sessionId = $request->id;
+        
+        // Fetch the latest transcription and summary from the database
+        $session = Session::where('id', $sessionId)->first();
+        $status = $session->status;
+
+        return response()->json([
+            'status' => $status ? $status : null,
+        ]);
     }
 }
