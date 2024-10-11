@@ -31,6 +31,7 @@ class Session extends Model implements HasMedia
         'audio_url',
         'transcription',
         'summary',
+        'notes',
         'task_created',
         'total_tasks',
         'tokens_used',

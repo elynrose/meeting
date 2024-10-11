@@ -39,7 +39,7 @@
 <button id="stopButton" class="btn btn-danger btn-sm" disabled>Stop</button>
 </div>
 @if($audio_url)
-<div class="mt-3"><audio id="audioPlayer" src="{{ $audio_url }}" controls class="audioPlayer"></audio></div>
+<div class="mt-3"><audio id="audioPlayer" width="100%" src="{{ $audio_url }}" controls class="audioPlayer"></audio></div>
 @endif
 <p id="status" class="mt-3">{{ $session->status ?? 'Press "Record" to start recording.'}}</p>
 </div>
@@ -49,22 +49,25 @@
 <!-- Summary Card -->
 <div class="col-md-8">
 <div class="card summary-text" id="summary">
-<div class="card-header">
-Summary
-</div>
 <div class="card-body">
-<a href="#" id="readMore" class="read-more">Read more</a> | <a href="#" data-toggle="modal" data-target="#originalTextModal">Original Text</a> | <a href="#"><i class="fas fa-edit"></i> Edit</a>
+<nav class="nav nav-pills nav-justified">
+    <a class="nav-link" href="#"><i class="fas fa-edit"></i> Edit</a>
+    <a class="nav-link" href="#" data-toggle="modal" data-target="#originalTextModal"><i class="fas fa-bullhorn"></i> Original Text</a>
+    <a class="nav-link" href="#" data-toggle="modal" data-target="#summaryTextModal"><i class="fas fa-book"></i> Summary</a>
+    <a class="nav-link" id="tasker" href="/create-todo-list/{{ $session->id }}"><i class="fas fa-list"></i> Create Todo List</a>
 
-<p id="summaryText" class="summaryDiv">
-@if($session->summary)
-{{ $session->summary }}
-@else
-No summary available.
-@endif
-
-</p>
+</nav>
+<form id="commentForm3" class="shadow">
+<div class="form-group" style="position:relative;">
+    <span class="small text-muted" id="spinner-circle" style="position:absolute; left:10px; top:10px; z-index:999;"><i id="saving-notes" class="fas fa-spinner fa-spin"></i> Saving</span>
+<textarea class="form-control" id="notes" rows="1" placeholder="Your notes here" style="padding:25px;">
+{{ $session->notes ?? '' }}
+</textarea>
+</div>
+</form>
 </div>
 </div>
+
 </div>
 
 <!-- Pending To-Do List Card -->
@@ -74,15 +77,25 @@ No summary available.
 To-Do List (Pending)
 </div>
 <div class="card-body todo-list">
-<div class="todo-item" data-id="1">
-<a href="#" data-toggle="modal" data-target="#taskModal1">Sample task 1</a>
+    @if(!$todos->isEmpty())
+    @foreach($todos as $todo)
+    <div class="todo-item ui-sortable-handle" data-id="{{ $todo->id }}">
+    <i class="fas fa-grip-vertical"></i> <a href="#" data-toggle="modal" data-target="#taskModal{{ $todo->id }}">{{ $todo->item }}</a>
+    
+    @can('todo_delete')
+                                                <form action="{{ route('frontend.todos.destroy', $todo->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;" class="pull-right">
+                                                    <input type="hidden" name="_method" value="DELETE">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                    <button class="trash" type="submit" value="{{ trans('global.delete') }}"><i class="fas fa-trash"></i></button>
+                                                </form>
+                                            @endcan
 </div>
-<div class="todo-item" data-id="2">
-<a href="#" data-toggle="modal" data-target="#taskModal2">Sample task 2</a>
-</div>
-<div class="todo-item" data-id="3">
-<a href="#" data-toggle="modal" data-target="#taskModal3">Sample task 3</a>
-</div>
+    @endforeach
+    @else
+    <div class="todo-item" data-id="0">
+    <i class="fas fa-grip-vertical"></i> <a href="#" data-toggle="modal" data-target="#taskModal0">Nothing to do</a>
+    </div>
+    @endif
 </div>
 </div>
 </div>
@@ -101,73 +114,55 @@ To-Do List (Completed)
 </div>
 </div>
 
-<!-- Modal Template for Task 1 -->
-<div class="modal fade" id="taskModal1" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel1" aria-hidden="true">
-<div class="modal-dialog" role="document">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title" id="taskModalLabel1">Task 1</h5>
-<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-<span aria-hidden="true">&times;</span>
-</button>
-</div>
-<div class="modal-body">
-<p>This is some detail about task 1.</p>
-<form id="commentForm1">
-<div class="form-group">
-<label for="comment1">Add a comment:</label>
-<textarea class="form-control" id="comment1" rows="3"></textarea>
-</div>
-<button type="submit" class="btn btn-primary">Submit</button>
-</form>
-</div>
-</div>
-</div>
-</div>
+@if(!$todos->isEmpty())
+    @foreach($todos as $todo)
+    <!-- Modal Template for Tasks -->
+    <div class="modal fade" id="taskModal{{ $todo->id }}" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel{{ $todo->id }}" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="{{ $todo->id }}">{{ $todo->item ?? 'To-do title here' }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                    <div class="modal-body">
+                        <p>{{ $todo->note ?? ''}}</p>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="defaultCheck1">
+                            <label class="form-check-label" for="defaultCheck1">
+                            Completed
+                            </label>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+    @endforeach
 
-<!-- Modal Template for Task 2 -->
-<div class="modal fade" id="taskModal2" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel2" aria-hidden="true">
-<div class="modal-dialog" role="document">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title" id="taskModalLabel2">Task 2</h5>
-<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-<span aria-hidden="true">&times;</span>
-</button>
-</div>
-<div class="modal-body">
-<p>This is some detail about task 2.</p>
-<form id="commentForm2">
-<div class="form-group">
-<label for="comment2">Add a comment:</label>
-<textarea class="form-control" id="comment2" rows="3"></textarea>
-</div>
-<button type="submit" class="btn btn-primary">Submit</button>
-</form>
-</div>
-</div>
-</div>
-</div>
+@endif
 
-<!-- Modal Template for Task 3 -->
-<div class="modal fade" id="taskModal3" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel3" aria-hidden="true">
+
+<!-- Modal Template for Summary -->
+<div class="modal fade" id="summaryTextModal" tabindex="-1" role="dialog" aria-labelledby="summaryTextModal" aria-hidden="true">
 <div class="modal-dialog" role="document">
 <div class="modal-content">
 <div class="modal-header">
-<h5 class="modal-title" id="taskModalLabel3">Task 3</h5>
+<h5 class="modal-title" id="summaryTextModalTitle">Summary</h5>
 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 <span aria-hidden="true">&times;</span>
 </button>
 </div>
-<div class="modal-body">
-<p>This is some detail about task 3.</p>
-<form id="commentForm3">
-<div class="form-group">
-<label for="comment3">Add a comment:</label>
-<textarea class="form-control" id="comment3" rows="3"></textarea>
-</div>
-<button type="submit" class="btn btn-primary">Submit</button>
-</form>
+<div class="modal-body" id="summaryText">
+<p id="summaryText" class="summaryDiv">
+@if($session->summary)
+{{ $session->summary }}
+@else
+No summary available.
+@endif
+
+</p>
+
 </div>
 </div>
 </div>
@@ -192,6 +187,8 @@ To-Do List (Completed)
         </div>
     </div>
 </div>
+
+
 @endsection
 @section('scripts')
   @parent
@@ -283,22 +280,6 @@ $(function() {
     }
     });
     });
-    
-    // Toggle Read More / Read Less functionality
-    document.getElementById('readMore').addEventListener('click', function(e) {
-    e.preventDefault();
-    const summaryText = document.getElementById('summary');
-    const readMoreLink = document.getElementById('readMore');
-    
-    if (summaryText.classList.contains('expanded')) {
-    summaryText.classList.remove('expanded');
-    readMoreLink.textContent = 'Read more'
-    } else {
-    summaryText.classList.add('expanded');
-    readMoreLink.textContent = 'Read less';
-    }
-    });
-    
     
     
     let mediaRecorder;
@@ -451,6 +432,62 @@ $(document).ready(function() {
 });
 </script>
 
+<script>
+//When the user types into #notes, wait for 5 seconds of inactivity before saving the notes
+let timeoutId;
+$('#spinner-circle').hide();
+document.getElementById('notes').addEventListener('input', function() {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(function() {
+        const notes = document.getElementById('notes').value;
+        $('#spinner-circle').show();
+        $.ajax({
+            url: '/save-notes',
+            method: 'POST',
+            data: {
+                id: {{ Request::segment(3) }},
+                notes: notes,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                $('#spinner-circle').hide();
+            },
+            error: function(xhr, status, error) {
+                $('#spinner-circle').fadeOut().hide();
+                alert('Error saving notes. Please try again.');
+                //console.error('Error saving notes:', xhr.responseText);
+            }
+        });
+    }, 5000);
+});
+</script>
 
+<script>
+/* when #tasker is clicked, send a jquery ajax post with the session id to  createToDoList route */
+$('#tasker').on('click', function(e) {
+    e.preventDefault();
+    const sessionId = {{ Request::segment(3) }};
+    $.ajax({
+        url: `/create-todo-list/${sessionId}`,
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        success: function(response) {
+            console.log('To-do list created');
+            /* Append the new to-do list items to the pending list
+            const todoList = $('#pending .todo-list');
+            todoList.empty();
+            response.forEach(function(todo) {
+                todoList.append(`<div class="todo-item" data-id="${todo.id}"><i class="fas fa-grip-vertical"></i> <a href="#" data-toggle="modal" data-target="#taskModal${todo.id}">${todo.item}</a></div>`);
+            });
+            */
+        },
+        error: function(xhr, status, error) {
+            console.error('Error creating to-do list:', xhr.responseText);
+        }
+    });
+});
+</script>
 
 @endsection

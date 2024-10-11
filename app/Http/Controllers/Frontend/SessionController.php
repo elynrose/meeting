@@ -15,6 +15,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Storage;
 use App\Models\GetAudioFile;
+use App\Models\Todo;
+use App\Models\Tasker;
 
 
 
@@ -177,6 +179,7 @@ class SessionController extends Controller
         abort_if(Gate::denies('session_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $session = Session::find($request->id);
+        $todos = Todo::where('session_id', $request->id)->get();
 
         $getAudioFile = new GetAudioFile;
         $audio_url = $getAudioFile->getFileFromS3($session->audio_url);
@@ -184,7 +187,7 @@ class SessionController extends Controller
             $audio_url = null;
         }
 
-        return view('frontend.sessions.recorder', compact('session', 'audio_url'));
+        return view('frontend.sessions.recorder', compact('session', 'audio_url', 'todos'));
     }
 
 
@@ -214,6 +217,60 @@ class SessionController extends Controller
 
         return response()->json([
             'status' => $status ? $status : null,
+        ]);
+    }
+
+
+    public function createToDoList(Request $request)
+    {
+        $sessionId = $request->id;
+        $toDoList = $request->toDoList;
+        
+        // Fetch the session from the database
+        $session = Session::where('id', $sessionId)->first();
+        $summary = $session->summary;
+        $note = $session->notes;
+        $copy = 'Summary: '.$summary . ' Notes: ' . $note;
+        $tasker = new Tasker;
+        $items = $tasker->createTasks($copy);
+
+        //Convert items to array
+        $actions = json_decode($items, true);
+        
+        //foreach item add the session id and save to the database
+        $i = 0;
+        foreach($actions as $action){
+            $todo = new Todo;
+            $todo->session_id = $session->id;
+            $todo->item = $action[$i]['item'];
+            $todo->note = $action[$i]['note'];
+            $todo->due_date = $action[$i]['due_date'];
+            $todo->time_due = $action[$i]['time_due'];
+            $todo->completed = 0;
+            $todo->save();
+            $i++;
+        }
+
+        // get total number of to-do's for this session
+        $total_todos = Todo::where('session_id', $session->id)->count();
+        return response()->json([
+            'success' => 'To-do list created successfully.',
+        ]);
+    }
+
+
+    public function saveNotes(Request $request)
+    {
+        $sessionId = $request->id;
+        $notes = $request->notes;
+        \Log::info('Notes: ' . $notes);
+        // Fetch the session from the database
+        $session = Session::where('id', $sessionId)->first();
+        $session->notes = $notes;
+        $session->save();
+
+        return response()->json([
+            'success' => 'Notes saved successfully.',
         ]);
     }
 }

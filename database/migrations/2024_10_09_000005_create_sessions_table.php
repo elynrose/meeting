@@ -14,6 +14,7 @@ class CreateSessionsTable extends Migration
             $table->longText('audio_url')->nullable();
             $table->longText('transcription')->nullable();
             $table->longText('summary')->nullable();
+            $table->longText('notes')->nullable();
             $table->integer('task_created')->nullable();
             $table->integer('total_tasks')->nullable();
             $table->integer('tokens_used')->nullable();

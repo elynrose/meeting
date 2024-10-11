@@ -13,6 +13,9 @@ class GetAudioFile extends Model
 
     public function getFileFromS3($url)
     {
+        if(!$url){
+            return false;
+        }
         // Initialize the S3 client
         $s3Client = new S3Client([
             'version' => 'latest',
