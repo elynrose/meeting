@@ -88,7 +88,11 @@ Route::group(['as' => 'frontend.', 'namespace' => 'Frontend', 'middleware' => ['
     Route::post('create-todo-list/{id}', 'SessionController@createToDoList')->name('createToDoList');
     Route::post('save-notes', 'SessionController@saveNotes')->name('saveNotes');
     Route::post('update-todo-status', 'SessionController@UpdateTodoStatus')->name('updateTodoStatus');
+    Route::post('update-todo-research', 'SessionController@UpdateTodoResearch')->name('UpdateTodoResearch');
 
+    //PDF Download
+    Route::get('view-pdf/{id}', 'PDFController@viewPDF')->name('viewPDF');
+    Route::get('pdf-download/{id}', 'PDFController@downloadPDF')->name('downloadPDF');
     // Todo
     Route::delete('todos/destroy', 'TodoController@massDestroy')->name('todos.massDestroy');
     Route::resource('todos', 'TodoController');

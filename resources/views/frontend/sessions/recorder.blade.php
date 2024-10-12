@@ -149,10 +149,12 @@ Completed
                         <p>{{ $todo->note ?? ''}}</p>
                         <p><strong>Due Date:</strong> {{ \Carbon\Carbon::parse($todo->due_date)->format('F j, Y') ?? '' }} @ {{ \Carbon\Carbon::parse($todo->time_due)->format('g:i A') ?? '' }}</p>
                         <div class="form-check form-check-inline">
-                        <input class="form-check form-check-input" type="checkbox" id="research" name="research" value="research">   
-                        <span class="small text-muted mt-1">Automate will attempt to do research on this topic.</span>
+                        <input class="form-check form-check-input" type="checkbox" id="research" data-id="{{ $todo->id }}" name="research" value="{{ $todo->research }}"  @if($todo->research) checked @else @endif>   
+                        <span class="small text-muted mt-1">@if($todo->research==1 && empty($todo->research_result)) <i id="researching{{ $todo->id }}" class="fas fa-spinner fa-spin spin{{ $todo->id }}"></i><span id="research_text{{ $todo->id }}"> Working...</span> @elseif($todo->research==0 && empty($todo->research_result)) <span id="research_text{{ $todo->id }}"> Automate will attempt to do research on this topic.</span> @elseif($todo->research==1 && !empty($todo->research_result)) Your research has been completed  @elseif($todo->research==0 && !empty($todo->research_result)) The research has been completed. Click on the button below.  @endif</span>
                     </div>
-                    <div class="mt-3"><a href="#" class="btn btn-xs btn-info">View Research</a></div>
+                    @if($todo->research==0 && !empty($todo->research_result)) 
+                    <div class="mt-3" ><a href="/pdf-download/{{ $todo->id }}" target="_blank" id="research_result{{ $todo->id }}" class="btn btn-xs btn-info research_result">Download Research</a></div>
+                    @endif
                     </div>
             </div>
         </div>
@@ -501,5 +503,46 @@ $('#tasker').on('click', function(e) {
     });
 });
 </script>
+
+<script>
+   // $('.research_result').hide();
+
+/* When research is checked, send a jquery ajax request to update todo for the session, set research to 1 */
+$('input[name="research"]').on('change', function() {
+    const todoId = $(this).data('id');
+    const isChecked = $(this).is(':checked');
+
+    if(isChecked || !isChecked) {
+        if (!confirm('Unchecking this will delete any previous research done on this topic. Are you sure you want to proceed?')) {
+            $(this).prop('checked', true);
+            return;
+        }
+    }
+    $.ajax({
+        url: '/update-todo-research',
+        method: 'POST',
+        data: {
+            id: todoId,
+            is_checked: isChecked,
+            _token: '{{ csrf_token() }}'
+        },
+        success: function(response) {
+            if (isChecked) {
+                $('#researching' + todoId).show();
+                $('.spin' + todoId).show();
+                $('#research_text' + todoId).text(' Working...');
+            } else {
+                $('#researching' + todoId).hide();
+                $('.spin' + todoId).hide();
+                $('#research_text' + todoId).text('Automate will attempt to do research on this topic.');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating research status:', xhr.responseText);
+        }
+    });
+});
+
+    </script>
 
 @endsection

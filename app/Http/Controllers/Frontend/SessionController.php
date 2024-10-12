@@ -298,4 +298,45 @@ class SessionController extends Controller
             'success' => 'To-do status updated successfully.',
         ]);
     }
+
+    public function saveSummary(Request $request)
+    {
+        $sessionId = $request->id;
+        $summary = $request->summary;
+        // Fetch the session from the database
+        $session = Session::where('id', $sessionId)->first();
+        $session->summary = $summary;
+        $session->save();
+
+        return response()->json([
+            'success' => 'Summary saved successfully.',
+        ]);
+    }
+
+
+    public function UpdateTodoResearch(Request $request)
+    {
+        $todoId = $request->id;
+        $isChecked = $request->is_checked;
+
+        \Log::info('Is Checked: ' . $isChecked);
+     
+        // Fetch the to-do from the database
+        $todo = Todo::where('id', $todoId)->first();
+        \Log::info('Todo: ' . $todo->research);
+        
+        //If the research is set to true it means the checkbox is checked and vise versa
+        if($isChecked == 'true'){
+            $todo->research = 1;
+        } else {
+            $todo->research_result = null;
+            $todo->research = 0;
+        }
+        
+        $todo->save();
+
+        return response()->json([
+            'success' => 'To-do research updated successfully.',
+        ]);
+    }
 }
