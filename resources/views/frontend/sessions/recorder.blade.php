@@ -1,5 +1,5 @@
 @extends('layouts.frontend')
-
+<div class="container">
 @section('content')
 <div class="container">
 @if(session('status'))
@@ -61,7 +61,9 @@
 <div class="form-group" style="position:relative;">
     <span class="small text-muted" id="spinner-circle" style="position:absolute; left:10px; top:10px; z-index:999;"><i id="saving-notes" class="fas fa-spinner fa-spin"></i> Saving</span>
 <textarea class="form-control" id="notes" rows="1" placeholder="Your notes here" style="padding:25px;">
-{{ $session->notes ?? '' }}
+@if($session->notes)
+    {{ $session->notes  }}
+@endif
 </textarea>
 </div>
 </form>
@@ -70,11 +72,12 @@
 
 </div>
 
+
 <!-- Pending To-Do List Card -->
 <div class="col-md-6" id="pending">
 <div class="card">
 <div class="card-header">
-To-Do List (Pending)
+Pending
 </div>
 <div class="card-body todo-list">
     @if(!$todos->isEmpty())
@@ -83,12 +86,12 @@ To-Do List (Pending)
     <i class="fas fa-grip-vertical"></i> <a href="#" data-toggle="modal" data-target="#taskModal{{ $todo->id }}">{{ $todo->item }}</a>
     
     @can('todo_delete')
-                                                <form action="{{ route('frontend.todos.destroy', $todo->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;" class="pull-right">
-                                                    <input type="hidden" name="_method" value="DELETE">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                                    <button class="trash" type="submit" value="{{ trans('global.delete') }}"><i class="fas fa-trash"></i></button>
-                                                </form>
-                                            @endcan
+    <form action="{{ route('frontend.todos.destroy', $todo->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;" class="pull-right">
+    <input type="hidden" name="_method" value="DELETE">
+    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+    <button class="trash" type="submit" value="{{ trans('global.delete') }}"><i class="fas fa-trash"></i></button>
+    </form>
+    @endcan
 </div>
     @endforeach
     @else
@@ -104,10 +107,26 @@ To-Do List (Pending)
 <div class="col-md-6" id="completed">
 <div class="card">
 <div class="card-header">
-To-Do List (Completed)
+Completed
 </div>
 <div class="card-body todo-list">
-<!-- Completed tasks will be moved here -->
+    @if(!$todo_completeds->isEmpty())
+    @foreach($todo_completeds as $todo_completed)
+    <div class="todo-item ui-sortable-handle" data-id="{{ $todo_completed->id }}">
+    <i class="fas fa-grip-vertical"></i> <a href="#" data-toggle="modal" data-target="#taskModal{{ $todo_completed->id }}">{{ $todo_completed->item }}</a>
+    
+    @can('todo_delete')
+    <form action="{{ route('frontend.todos.destroy', $todo_completed->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;" class="pull-right">
+    <input type="hidden" name="_method" value="DELETE">
+    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+    <button class="trash" type="submit" value="{{ trans('global.delete') }}"><i class="fas fa-trash"></i></button>
+    </form>
+    @endcan
+    </div>
+    @endforeach
+    @else
+
+    @endif
 </div>
 </div>
 </div>
@@ -128,12 +147,12 @@ To-Do List (Completed)
                 </div>
                     <div class="modal-body">
                         <p>{{ $todo->note ?? ''}}</p>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="defaultCheck1">
-                            <label class="form-check-label" for="defaultCheck1">
-                            Completed
-                            </label>
-                        </div>
+                        <p><strong>Due Date:</strong> {{ \Carbon\Carbon::parse($todo->due_date)->format('F j, Y') ?? '' }} @ {{ \Carbon\Carbon::parse($todo->time_due)->format('g:i A') ?? '' }}</p>
+                        <div class="form-check form-check-inline">
+                        <input class="form-check form-check-input" type="checkbox" id="research" name="research" value="research">   
+                        <span class="small text-muted mt-1">Automate will attempt to do research on this topic.</span>
+                    </div>
+                    <div class="mt-3"><a href="#" class="btn btn-xs btn-info">View Research</a></div>
                     </div>
             </div>
         </div>
@@ -188,7 +207,7 @@ No summary available.
     </div>
 </div>
 
-
+</div>
 @endsection
 @section('scripts')
   @parent
@@ -198,14 +217,14 @@ $(function() {
     $("#pending .todo-list, #completed .todo-list").sortable({
     connectWith: ".todo-list", // Allow dragging between lists
     receive: function(event, ui) {
-    const taskId = $(ui.item).data('id');
+    const todoId = $(ui.item).data('id');
     const newStatus = $(this).closest('.col-md-6').attr('id') === 'completed' ? 'completed' : 'pending';
     // AJAX request to update task status
     $.ajax({
-    url: '/update-task-status',
+    url: '/update-todo-status',
     method: 'POST',
     data: {
-    id: taskId,
+    id: todoId,
     status: newStatus,
     _token: '{{ csrf_token() }}' // Laravel CSRF protection
     },
@@ -411,7 +430,7 @@ $(document).ready(function() {
             },
             success: function(data) {
 
-                statusText.textContent = 'Transcribed';
+                statusText.textContent = '';
                 // Update the content of the divs if there are any changes
                 if (data.transcription) {
                     $('#transcriptionText').text(data.transcription);
@@ -474,14 +493,7 @@ $('#tasker').on('click', function(e) {
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
         success: function(response) {
-            console.log('To-do list created');
-            /* Append the new to-do list items to the pending list
-            const todoList = $('#pending .todo-list');
-            todoList.empty();
-            response.forEach(function(todo) {
-                todoList.append(`<div class="todo-item" data-id="${todo.id}"><i class="fas fa-grip-vertical"></i> <a href="#" data-toggle="modal" data-target="#taskModal${todo.id}">${todo.item}</a></div>`);
-            });
-            */
+            location.reload();
         },
         error: function(xhr, status, error) {
             console.error('Error creating to-do list:', xhr.responseText);

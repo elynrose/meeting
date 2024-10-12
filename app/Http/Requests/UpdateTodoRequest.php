@@ -29,6 +29,14 @@ class UpdateTodoRequest extends FormRequest
                 'date_format:' . config('panel.time_format'),
                 'nullable',
             ],
+            'research' => [
+                'nullable',
+                'integer',
+            ],
+            'research_result' => [
+                'string',
+                'nullable',
+            ],
             'assigned_tos.*' => [
                 'integer',
             ],

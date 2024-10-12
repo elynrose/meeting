@@ -24,7 +24,7 @@ class Summerizer extends Model
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => 'You are a helpful assistant that summarizes text.'
+                    'content' => 'You are a helpful assistant that summarizes text. Results'
                 ],
                 [
                     'role' => 'user',

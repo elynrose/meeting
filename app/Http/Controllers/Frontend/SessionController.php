@@ -179,7 +179,9 @@ class SessionController extends Controller
         abort_if(Gate::denies('session_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $session = Session::find($request->id);
-        $todos = Todo::where('session_id', $request->id)->get();
+        $todos = Todo::where('session_id', $request->id)->where('completed', 0)->get();
+        $todo_completeds = Todo::where('session_id', $request->id)->where('completed', 1)->get();
+
 
         $getAudioFile = new GetAudioFile;
         $audio_url = $getAudioFile->getFileFromS3($session->audio_url);
@@ -187,7 +189,7 @@ class SessionController extends Controller
             $audio_url = null;
         }
 
-        return view('frontend.sessions.recorder', compact('session', 'audio_url', 'todos'));
+        return view('frontend.sessions.recorder', compact('session', 'audio_url', 'todos', 'todo_completeds'));
     }
 
 
@@ -254,7 +256,8 @@ class SessionController extends Controller
         // get total number of to-do's for this session
         $total_todos = Todo::where('session_id', $session->id)->count();
         return response()->json([
-            'success' => 'To-do list created successfully.',
+            //return the json items
+            'todo' => $items,
         ]);
     }
 
@@ -271,6 +274,28 @@ class SessionController extends Controller
 
         return response()->json([
             'success' => 'Notes saved successfully.',
+        ]);
+    }
+
+
+    public function UpdateTodoStatus(Request $request)
+    {
+        $todoId = $request->id;
+        $status = $request->status;
+
+        if($status == 'completed'){
+            $status = 1;
+        } elseif($status == 'pending'){ 
+            $status = 0;
+        }
+        
+        // Fetch the to-do from the database
+        $todo = Todo::where('id', $todoId)->first();
+        $todo->completed = $status;
+        $todo->save();
+
+        return response()->json([
+            'success' => 'To-do status updated successfully.',
         ]);
     }
 }

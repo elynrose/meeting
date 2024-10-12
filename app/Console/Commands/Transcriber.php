@@ -54,7 +54,7 @@ class Transcriber extends Command
             $transcribe = new Transcribe();
 
             $transcribedText = $transcribe->convertMp3ToText($signedUrl);
-
+            \Log::info(print_r($transcribedText, true));
             //Save the transcribed text to the database
             $first_session->transcription = $transcribedText;
             $first_session->status = 'Transcribed';

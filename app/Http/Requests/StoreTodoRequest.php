@@ -35,11 +35,17 @@ class StoreTodoRequest extends FormRequest
             'assigned_tos' => [
                 'array',
             ],
+            'research' => [
+                'nullable',
+                'integer',
+            ],
+            'research_result' => [
+                'string',
+                'nullable',
+            ],
             'completed' => [
                 'nullable',
                 'integer',
-                'min:-2147483648',
-                'max:2147483647',
             ],
             'session_id' => [
                 'required',

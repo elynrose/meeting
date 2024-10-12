@@ -28,6 +28,8 @@ class Todo extends Model
         'time_due',
         'send_reminder',
         'completed',
+        'research',
+        'research_result',
         'session_id',
         'created_at',
         'updated_at',

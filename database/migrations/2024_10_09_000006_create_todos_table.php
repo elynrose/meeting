@@ -14,6 +14,8 @@ class CreateTodosTable extends Migration
             $table->longText('note')->nullable();
             $table->date('due_date')->nullable();
             $table->time('time_due')->nullable();
+            $table->int('research')->nullable();
+            $table->longText('research_result')->nullable();
             $table->boolean('send_reminder')->default(0)->nullable();
             $table->integer('completed')->nullable();
             $table->timestamps();
