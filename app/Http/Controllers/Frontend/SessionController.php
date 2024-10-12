@@ -227,12 +227,18 @@ class SessionController extends Controller
     {
         $sessionId = $request->id;
         $toDoList = $request->toDoList;
-        
+        $relatedTodos = Todo::where('session_id', $sessionId)->get();
+        $relatedTodo = " Do not repeat these already assigned tasks: ";
+        if($relatedTodos){
+            foreach($relatedTodos as $todo){
+                $relatedTodo .= $todo->item . ', ';
+            }
+        }
         // Fetch the session from the database
         $session = Session::where('id', $sessionId)->first();
         $summary = $session->summary;
         $note = $session->notes;
-        $copy = 'Summary: '.$summary . ' Notes: ' . $note;
+        $copy = 'Summary: '.$summary . ' Notes: ' . $note." ".$relatedTodo;
         $tasker = new Tasker;
         $items = $tasker->createTasks($copy);
 

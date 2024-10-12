@@ -60,10 +60,7 @@
 <form id="commentForm3" class="shadow">
 <div class="form-group" style="position:relative;">
     <span class="small text-muted" id="spinner-circle" style="position:absolute; left:10px; top:10px; z-index:999;"><i id="saving-notes" class="fas fa-spinner fa-spin"></i> Saving</span>
-<textarea class="form-control" id="notes" rows="1" placeholder="Your notes here" style="padding:25px;">
-@if($session->notes)
-    {{ $session->notes  }}
-@endif
+<textarea class="form-control" id="notes" rows="1" placeholder="Your notes here" style="padding:25px;">@if($session->notes){{ $session->notes  }}@endif
 </textarea>
 </div>
 </form>
@@ -231,7 +228,7 @@ $(function() {
     _token: '{{ csrf_token() }}' // Laravel CSRF protection
     },
     success: function(response) {
-    console.log('Task status updated');
+    location.reload();
     },
     error: function() {
     console.error('Error updating task status');
