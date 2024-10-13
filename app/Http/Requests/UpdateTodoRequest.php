@@ -43,6 +43,14 @@ class UpdateTodoRequest extends FormRequest
             'assigned_tos' => [
                 'array',
             ],
+            'ordering' => [
+                'integer',
+                'nullable',
+            ],
+            'priority' => [
+                'integer',
+                'nullable',
+            ],
             'completed' => [
                 'nullable',
                 'integer',

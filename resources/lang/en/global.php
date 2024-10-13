@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'performance' => 'How are you doing overall?',
     'new'                        => 'New',
     'actions'                        => 'Actions',
     'add'                            => 'Add',

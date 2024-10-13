@@ -21,7 +21,6 @@ use App\Models\Tasker;
 
 
 
-
 class SessionController extends Controller
 {
     use MediaUploadingTrait;
@@ -179,8 +178,12 @@ class SessionController extends Controller
         abort_if(Gate::denies('session_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $session = Session::find($request->id);
-        $todos = Todo::where('session_id', $request->id)->where('completed', 0)->get();
-        $todo_completeds = Todo::where('session_id', $request->id)->where('completed', 1)->get();
+        $todos = Todo::where('session_id', $request->id)->where('completed', 0)->whereHas('assigned_tos', function ($query) {
+            $query->where('id', auth()->id());
+        })->get();
+        $todo_completeds = Todo::where('session_id', $request->id)->where('completed', 1)->whereHas('assigned_tos', function ($query) {
+            $query->where('id', auth()->id());
+        })->get();
 
 
         $getAudioFile = new GetAudioFile;
@@ -189,7 +192,9 @@ class SessionController extends Controller
             $audio_url = null;
         }
 
-        return view('frontend.sessions.recorder', compact('session', 'audio_url', 'todos', 'todo_completeds'));
+        $assigned_tos = User::pluck('email', 'id', 'name');
+
+        return view('frontend.sessions.recorder', compact('session', 'audio_url', 'todos', 'todo_completeds', 'assigned_tos'));
     }
 
 
@@ -244,27 +249,35 @@ class SessionController extends Controller
 
         //Convert items to array
         $actions = json_decode($items, true);
-        
+      
         //foreach item add the session id and save to the database
-        $i = 0;
-        foreach($actions as $action){
+        foreach($actions['actionable-items'] as $action){
             $todo = new Todo;
             $todo->session_id = $session->id;
-            $todo->item = $action[$i]['item'];
-            $todo->note = $action[$i]['note'];
-            $todo->due_date = $action[$i]['due_date'];
-            $todo->time_due = $action[$i]['time_due'];
+            $todo->item = $action['item'];
+            $todo->note = $action['note'];
+            $todo->due_date = $action['due_date'];
+            $todo->time_due = $action['time_due'];
             $todo->completed = 0;
+            //add assigned to this user
             $todo->save();
-            $i++;
+            $todo->assigned_tos()->sync(auth()->id());
+
         }
 
         // get total number of to-do's for this session
         $total_todos = Todo::where('session_id', $session->id)->count();
-        return response()->json([
-            //return the json items
-            'todo' => $items,
+
+        //Get all todos for this session
+        $todos = Todo::where('session_id', $session->id)->whereHas('assigned_tos', function ($query) {
+            $query->where('id', auth()->id());
+        })->get();
+       
+        //Send the items back to the frontend
+        $json = response()->json([
+            'todo' => $todos
         ]);
+        return $json;       
     }
 
 

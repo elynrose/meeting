@@ -1,5 +1,5 @@
 @extends('layouts.frontend')
-<div class="container">
+<div class="container-fluid">
 @section('content')
 <div class="container">
 @if(session('status'))
@@ -10,64 +10,14 @@
 
 <h2 class="mb-4">{{ $session->name }}</h2>
 
+@component('components.assigned-to', ['assigned_tos' => $assigned_tos, 'session' => $session])
+@endcomponent
 
-<div class="row px-3">
-<ul id="thumbnail" class="small text-muted">
-<li>
-<img src="https://via.placeholder.com/40" width="10" alt="User 1">
-<span>Jack Daw</span>
-</li>
-<li>
-<img src="https://via.placeholder.com/40" width="10" alt="User 2">
-<span>Milan Pablo</span>
-</li>
-<li>
-<img src="https://via.placeholder.com/40" width="10" alt="User 3">
-<span>Mike Sweat</span>
-</li>
-</ul>
-</div>
-<div class="row">
-<!-- Recorder Card -->
-<div class="col-md-4">
-<div class="card">
+@component('components.audio-recorder', ['audio_url' => $audio_url])
+@endcomponent
 
-<div class="card-body text-center">
-    <div class="mt-4">
-<button id="recordButton" data-id="{{ Request::segment(3) }}" class="btn btn-secondary btn-sm">Record</button>
-<button id="pauseButton" class="btn btn-secondary btn-sm" disabled>Pause</button>
-<button id="stopButton" class="btn btn-danger btn-sm" disabled>Stop</button>
-</div>
-@if($audio_url)
-<div class="mt-3"><audio id="audioPlayer" width="100%" src="{{ $audio_url }}" controls class="audioPlayer"></audio></div>
-@endif
-<p id="status" class="mt-3">{{ $session->status ?? 'Press "Record" to start recording.'}}</p>
-</div>
-</div>
-</div>
-
-<!-- Summary Card -->
-<div class="col-md-8">
-<div class="card summary-text" id="summary">
-<div class="card-body">
-<nav class="nav nav-pills nav-justified">
-    <a class="nav-link" href="#"><i class="fas fa-edit"></i> Edit</a>
-    <a class="nav-link" href="#" data-toggle="modal" data-target="#originalTextModal"><i class="fas fa-bullhorn"></i> Original Text</a>
-    <a class="nav-link" href="#" data-toggle="modal" data-target="#summaryTextModal"><i class="fas fa-book"></i> Summary</a>
-    <a class="nav-link" id="tasker" href="/create-todo-list/{{ $session->id }}"><i class="fas fa-list"></i> Create Todo List</a>
-
-</nav>
-<form id="commentForm3" class="shadow">
-<div class="form-group" style="position:relative;">
-    <span class="small text-muted" id="spinner-circle" style="position:absolute; left:10px; top:10px; z-index:999;"><i id="saving-notes" class="fas fa-spinner fa-spin"></i> Saving</span>
-<textarea class="form-control" id="notes" rows="1" placeholder="Your notes here" style="padding:25px;">@if($session->notes){{ $session->notes  }}@endif
-</textarea>
-</div>
-</form>
-</div>
-</div>
-
-</div>
+@component('components.summary-notes', ['session' => $session])
+@endcomponent
 
 
 <!-- Pending To-Do List Card -->
@@ -77,28 +27,14 @@
 Pending
 </div>
 <div class="card-body todo-list">
-    @if(!$todos->isEmpty())
-    @foreach($todos as $todo)
-    <div class="todo-item ui-sortable-handle" data-id="{{ $todo->id }}">
-    <i class="fas fa-grip-vertical"></i> <a href="#" data-toggle="modal" data-target="#taskModal{{ $todo->id }}">{{ $todo->item }}</a>
-    
-    @can('todo_delete')
-    <form action="{{ route('frontend.todos.destroy', $todo->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;" class="pull-right">
-    <input type="hidden" name="_method" value="DELETE">
-    <input type="hidden" name="_token" value="{{ csrf_token() }}">
-    <button class="trash" type="submit" value="{{ trans('global.delete') }}"><i class="fas fa-trash"></i></button>
-    </form>
-    @endcan
-</div>
-    @endforeach
-    @else
-    <div class="todo-item" data-id="0">
-    <i class="fas fa-grip-vertical"></i> <a href="#" data-toggle="modal" data-target="#taskModal0">Nothing to do</a>
-    </div>
-    @endif
+<a id="tasker" href="/create-todo-list/{{ $session->id }}"><i class="fas fa-plus"></i> Suggest Tasks</a>
+<hr>
+  @component('components.todo-list', ['todos' => $todos])
+  @endcomponent
 </div>
 </div>
 </div>
+
 
 <!-- Completed To-Do List Card -->
 <div class="col-md-6" id="completed">
@@ -107,59 +43,16 @@ Pending
 Completed
 </div>
 <div class="card-body todo-list">
-    @if(!$todo_completeds->isEmpty())
-    @foreach($todo_completeds as $todo_completed)
-    <div class="todo-item ui-sortable-handle" data-id="{{ $todo_completed->id }}">
-    <i class="fas fa-grip-vertical"></i> <a href="#" data-toggle="modal" data-target="#taskModal{{ $todo_completed->id }}">{{ $todo_completed->item }}</a>
-    
-    @can('todo_delete')
-    <form action="{{ route('frontend.todos.destroy', $todo_completed->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;" class="pull-right">
-    <input type="hidden" name="_method" value="DELETE">
-    <input type="hidden" name="_token" value="{{ csrf_token() }}">
-    <button class="trash" type="submit" value="{{ trans('global.delete') }}"><i class="fas fa-trash"></i></button>
-    </form>
-    @endcan
-    </div>
-    @endforeach
-    @else
-
-    @endif
+   @component('components.todo-list-completed', ['todo_completeds' => $todo_completeds])
+   @endcomponent
 </div>
 </div>
 </div>
 </div>
 </div>
 
-@if(!$todos->isEmpty())
-    @foreach($todos as $todo)
-    <!-- Modal Template for Tasks -->
-    <div class="modal fade" id="taskModal{{ $todo->id }}" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel{{ $todo->id }}" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="{{ $todo->id }}">{{ $todo->item ?? 'To-do title here' }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                    <div class="modal-body">
-                        <p>{{ $todo->note ?? ''}}</p>
-                        <p><strong>Due Date:</strong> {{ \Carbon\Carbon::parse($todo->due_date)->format('F j, Y') ?? '' }} @ {{ \Carbon\Carbon::parse($todo->time_due)->format('g:i A') ?? '' }}</p>
-                        <div class="form-check form-check-inline">
-                        <input class="form-check form-check-input" type="checkbox" id="research" data-id="{{ $todo->id }}" name="research" value="{{ $todo->research }}"  @if($todo->research) checked @else @endif>   
-                        <span class="small text-muted mt-1">@if($todo->research==1 && empty($todo->research_result)) <i id="researching{{ $todo->id }}" class="fas fa-spinner fa-spin spin{{ $todo->id }}"></i><span id="research_text{{ $todo->id }}"> Working...</span> @elseif($todo->research==0 && empty($todo->research_result)) <span id="research_text{{ $todo->id }}"> Automate will attempt to do research on this topic.</span> @elseif($todo->research==1 && !empty($todo->research_result)) Your research has been completed  @elseif($todo->research==0 && !empty($todo->research_result)) The research has been completed. Click on the button below.  @endif</span>
-                    </div>
-                    @if($todo->research==0 && !empty($todo->research_result)) 
-                    <div class="mt-3" ><a href="/pdf-download/{{ $todo->id }}" target="_blank" id="research_result{{ $todo->id }}" class="btn btn-xs btn-info research_result">Download Research</a></div>
-                    @endif
-                    </div>
-            </div>
-        </div>
-    </div>
-    @endforeach
-
-@endif
-
+@component('components.todo-modal', ['todos' => $todos, 'assigned_tos' => $assigned_tos])
+@endcomponent
 
 <!-- Modal Template for Summary -->
 <div class="modal fade" id="summaryTextModal" tabindex="-1" role="dialog" aria-labelledby="summaryTextModal" aria-hidden="true">
@@ -484,6 +377,7 @@ document.getElementById('notes').addEventListener('input', function() {
 /* when #tasker is clicked, send a jquery ajax post with the session id to  createToDoList route */
 $('#tasker').on('click', function(e) {
     e.preventDefault();
+    $('#tasker').html('<i class="fas fa-spinner fa-spin"></i> Suggesting Tasks...');
     const sessionId = {{ Request::segment(3) }};
     $.ajax({
         url: `/create-todo-list/${sessionId}`,
@@ -492,7 +386,9 @@ $('#tasker').on('click', function(e) {
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
         success: function(response) {
+           //Append each of the new todos items to the list
             location.reload();
+
         },
         error: function(xhr, status, error) {
             console.error('Error creating to-do list:', xhr.responseText);
@@ -539,6 +435,50 @@ $('input[name="research"]').on('change', function() {
         }
     });
 });
+
+
+//Write js that submits any form with class autopost when its submit button is clicked, use ajax to submit the form without refreshing the page.
+$('.autopost .alert').hide();
+$('.autopost').on('submit', function(e) {
+    e.preventDefault();
+    const form = $(this);
+    const url = form.attr('action');
+    const formData = new FormData(form[0]);
+    $.ajax({
+        url: url,
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            $('.autopost .alert').removeClass('alert-success').text('');
+            $('.autopost .alert').addClass('alert-success').text('Form submitted successfully.').show();
+            location.reload()
+        },
+        error: function(xhr, status, error) {
+            $('.autopost .alert').addClass('alert-danger').text('Error submitting form:', xhr.responseText).show();
+            console.error('Error submitting form:', xhr.responseText);
+        }
+    });
+});
+
+//when the edit-todo link is clicked, show the form and hide the paragraph
+//hide the form first
+$('.modal-editor-form').hide();
+$('.edit-todo').on('click', function(e) {
+    e.preventDefault();
+    const todoId = $(this).attr('id');
+    $('#modal-editor-a-' + todoId).hide();
+    $('#modal-editor-b-' + todoId).show();
+});
+
+
+//Add CKEditor to the textarea with class ckeditor
+ClassicEditor.create(document.querySelector('.ckeditor'))
+    .catch(error => {
+        console.error(error);
+    });
+
 
     </script>
 

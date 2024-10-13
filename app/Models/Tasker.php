@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Auth;
 
 class Tasker extends Model
 {
@@ -22,11 +23,11 @@ class Tasker extends Model
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => 'You are a helpful assistant that reads a text and converts it into a list of actionable items. You provide the list in json format with the main key actionable-items and sub keys, item, note, due_date, time_due. An example of the result is: {"actionable-items": [{"item": "Buy groceries", "note": "Buy milk, eggs, and bread", "due_date": "suggest a due date in this format: 2022-12-31", "time_due": "suggest a time due in this format: 12:00:00"}]}'
+                        'content' => 'You are a helpful assistant that reads a text and converts it into a list of actionable items. You provide the list in json format with the main key actionable-items and sub keys, item, note, due_date, time_due. An example of the result is: {"actionable-items": [{"item": "Buy groceries", "note": "What action must be taken. If topic is researchable, suggest some points.", "due_date": "suggest a due date strictly in this format: 2022-12-31", "time_due": "suggest a time due strictly in this format: 12:00:00"}]}. All fields are required.'
                     ],
                     [
                         'role' => 'user',
-                        'content' => "Convert the following text into multiple actionable items: \n" . $text
+                        'content' => "Convert the following text into multiple actionable items for ".Auth::user()->name.": ". $text
                     ]
                 ]
             ]);

@@ -39,6 +39,7 @@ class Research extends Command
         $researcher = new Researcher();
         $topic = "Title: ".$todo->item." Details:".$todo->note;
         $article = $researcher->research($topic);
+        
         //Save the research result to the database
         $todo->research_result = $article;
         $todo->research = 0;

@@ -40,7 +40,8 @@ class Summerizer extends Model
             return trim($summaryText);
         } else {
             // Handle any errors with the summarization
-            dd($summaryResponse->body());
+            \Log::error('Error summarizing text: ' . $summaryResponse->body());
+            return null;
         }
     }
 }

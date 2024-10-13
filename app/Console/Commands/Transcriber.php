@@ -38,23 +38,20 @@ class Transcriber extends Command
             if(!$first_session){
                 return json_encode(['error'=>'No new session found']);
             }
+            
             $audioUrl= $first_session->audio_url;
-            //\Log::info('Audio URL: ' . $audioUrl);
             
             $getAudioFile = new GetAudioFile();
 
             // Get the pre-signed URL for the file
             $signedUrl = $getAudioFile->getFileFromS3($audioUrl);
 
-            //Log the result
-            //\Log::info('Signed URL: ' . $signedUrl);
-
             // Get the transcribed text
 
             $transcribe = new Transcribe();
 
             $transcribedText = $transcribe->convertMp3ToText($signedUrl);
-            \Log::info(print_r($transcribedText, true));
+
             //Save the transcribed text to the database
             $first_session->transcription = $transcribedText;
             $first_session->status = 'Transcribed';

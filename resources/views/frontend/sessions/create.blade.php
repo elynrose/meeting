@@ -2,11 +2,11 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-8">
 
             <div class="card">
                 <div class="card-header">
-                    {{ trans('global.create') }} {{ trans('cruds.session.title_singular') }}
+                   {{ trans('cruds.session.session_question') }}
                 </div>
 
                 <div class="card-body">

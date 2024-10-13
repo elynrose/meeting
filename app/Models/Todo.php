@@ -31,6 +31,8 @@ class Todo extends Model
         'research',
         'research_result',
         'session_id',
+        'ordering',
+        'priority',
         'created_at',
         'updated_at',
         'deleted_at',

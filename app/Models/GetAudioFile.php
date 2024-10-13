@@ -31,9 +31,6 @@ class GetAudioFile extends Model
         $bucket = explode('.', $parsedUrl['host'])[0];
         $key = ltrim($parsedUrl['path'], '/');
 
-        \Log::info('Bucket: ' . $bucket);
-        \Log::info('Key: ' . $key);
-
         try {
             // Generate a pre-signed URL for the file
             $cmd = $s3Client->getCommand('GetObject', [
@@ -52,7 +49,8 @@ class GetAudioFile extends Model
 
         } catch (AwsException $e) {
             // Handle the error
-            return 'Error: ' . $e->getMessage();
+            \Log::error('Error getting file from S3: ' . $e->getMessage());
+            return false;
         }
     }
 
