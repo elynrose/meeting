@@ -29,9 +29,9 @@ class AssignedToEmailNotification extends Notification
     public function getMessage()
     {
         return (new MailMessage)
-            ->subject(config('app.name') . ': entry ' . $this->data['action'] . ' in ' . $this->data['model_name'])
-            ->greeting('Hi,')
-            ->line('we would like to inform you that entry has been ' . $this->data['action'] . ' in ' . $this->data['model_name'])
+            ->subject(config('app.name') . ': You have been assigned to a new ' . $this->data['model_name'])
+            ->greeting('Hi '.$this->data['name']).'!'
+            ->line('We would like to inform you that you have been assigned to a new ' . $this->data['model_name'])
             ->line('Please log in to see more information.')
             ->action(config('app.name'), config('app.url'))
             ->line('Thank you')

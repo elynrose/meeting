@@ -14,14 +14,14 @@ class TodoCompletedActionObserver
                 
                 $data  = ['action' => 'updated', 'model_name' => 'Todo', 'changed_field' => 'completed'];
                 $users = $model->assignedUsers()->get(); // Ensure it returns a relationship instance
-                if ($users->isNotEmpty() && $user->id!=auth()->user()) {
+                if ($users->isNotEmpty()) {
                     Notification::send($users, new DataChangeEmailNotification($data));
                 }
 
             } else  {
                 $data  = ['action' => 'updated', 'model_name' => 'Todo', 'changed_field' => 'completed'];
                 $users = $model->assignedUsers()->get(); // Ensure it returns a relationship instance
-                if ($users->isNotEmpty() && $user->id!=auth()->user()) {
+                if ($users->isNotEmpty()) {
                     Notification::send($users, new DataChangeEmailNotification($data));
                 }
             }
