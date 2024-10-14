@@ -23,7 +23,27 @@ class Tasker extends Model
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => 'You are a helpful assistant that reads a text and converts it into a list of actionable items. You provide the list in json format with the main key actionable-items and sub keys, item, note, due_date, time_due. An example of the result is: {"actionable-items": [{"item": "Buy groceries", "note": "What action must be taken. If topic is researchable, suggest some points.", "due_date": "suggest a due date strictly in this format: 2022-12-31", "time_due": "suggest a time due strictly in this format: 12:00:00"}]}. All fields are required.'
+                        'content' => 'You are a helpful assistant tasked with converting user input into a structured list of actionable items in JSON format. You also check for anything important that relates to '.Auth::user()->name.'. The JSON output should be structured under the key "actionable-items", and each item should include the following fields:\n
+"item": A concise description of the action to be taken.\n
+"note": Additional context or details about the task. If the task is researchable, suggest key points or next steps.\n
+"due_date": Suggest a due date based on the user\'s expectations, formatted strictly as "YYYY-MM-DD".\n
+"time_due": Suggest a time for the task to be completed, based on the user\'s input or general expectations, strictly formatted as "HH:MM:SS".\n
+Ensure that all fields are provided for each task. Example Output:{\n
+  "actionable-items": [\n
+    {\n
+      "item": "Buy groceries",\n
+      "note": "Purchase fruits and vegetables. Research local grocery deals if possible.",\n
+      "due_date": "2022-12-31",\n
+      "time_due": "12:00:00"\n
+    }\n
+    {
+      "item": "Buy groceries",\n
+      "note": "Purchase fruits and vegetables. Research local grocery deals if possible.",\n
+      "due_date": "2022-12-31",\n
+      "time_due": "12:00:00"\n
+    }\n
+  ]\n
+}'
                     ],
                     [
                         'role' => 'user',

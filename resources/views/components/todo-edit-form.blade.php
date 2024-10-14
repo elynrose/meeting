@@ -57,11 +57,9 @@
                                 <span class="help-block">{{ trans('cruds.todo.fields.send_reminder_helper') }}</span>
                             </div>
                             <div class="form-group">
-                            @if(in_array(auth()->user()->id, $todo->assigned_tos->pluck('id')->toArray()))
                             <input type="hidden" name="assigned_tos[]" value="{{ auth()->user()->id }}">
 
                                
-                                 @else
                                  <label for="assigned_tos">{{ trans('cruds.todo.fields.assigned_to') }}</label>
                                 <div style="padding-bottom: 4px">
                                     <span class="btn btn-info btn-xs select-all" style="border-radius: 0">{{ trans('global.select_all') }}</span>
@@ -74,7 +72,6 @@
                                        
                                      @endforeach
                                 </select>  
-                                 @endif
                                 @if($errors->has('assigned_tos'))
                                     <div class="invalid-feedback">
                                         {{ $errors->first('assigned_tos') }}

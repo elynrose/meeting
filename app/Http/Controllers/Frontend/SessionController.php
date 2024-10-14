@@ -178,9 +178,11 @@ class SessionController extends Controller
         abort_if(Gate::denies('session_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $session = Session::find($request->id);
+
         $todos = Todo::where('session_id', $request->id)->where('completed', 0)->whereHas('assigned_tos', function ($query) {
             $query->where('id', auth()->id());
         })->get();
+        
         $todo_completeds = Todo::where('session_id', $request->id)->where('completed', 1)->whereHas('assigned_tos', function ($query) {
             $query->where('id', auth()->id());
         })->get();

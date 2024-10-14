@@ -193,7 +193,7 @@ $(function() {
     });
     
     
-    let mediaRecorder;
+let mediaRecorder;
 let audioChunks = [];
 
 // Get the record, pause, and stop buttons

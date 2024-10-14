@@ -62,4 +62,9 @@ class Session extends Model implements HasMedia
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    public function todos()
+    {
+        return $this->hasMany(Todo::class, 'session_id', 'id');
+    }
 }

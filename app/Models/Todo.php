@@ -62,4 +62,10 @@ class Todo extends Model
     {
         return $this->belongsTo(Session::class, 'session_id');
     }
+
+   // Assuming there is a relationship defined in the Todo model
+    public function assignedUsers()
+    {
+        return $this->belongsToMany(User::class);
+    } 
 }

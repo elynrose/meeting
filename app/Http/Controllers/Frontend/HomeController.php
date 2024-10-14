@@ -11,18 +11,18 @@ class HomeController
 {
     public function index()
     {
-        $sessions = Session::where('user_id', auth()->id())->get()->map(function ($session) {
-            $session->todos_total = Todo::where('session_id', $session->id)->whereHas('assigned_tos', function ($query) {
-                $query->where('id', auth()->id());
-            })->count();
-            $session->todos_pending= Todo::where('session_id', $session->id)->where('completed', 0)->whereHas('assigned_tos', function ($query) {
-                $query->where('id', auth()->id());
-            })->count();
-            $session->todos_completed = Todo::where('session_id', $session->id)->where('completed', 1)->whereHas('assigned_tos', function ($query) {
-                $query->where('id', auth()->id());
-            })->count();
+        $sessions = Session::whereHas('todos.assigned_tos', function ($query) {
+            $query->where('id', auth()->id());
+        })->with(['todos' => function ($query) {
+            $query->whereHas('assigned_tos', function ($query) {
+            $query->where('id', auth()->id());
+            })->orderBy('due_date', 'asc');
+        }])->get()->map(function ($session) {
+            $session->todos_total = $session->todos->count();
+            $session->todos_pending = $session->todos->where('completed', 0)->count();
+            $session->todos_completed = $session->todos->where('completed', 1)->count();
             return $session;
-            });
+        });
         
         $totalTodos = $sessions->where('user_id', Auth::user()->id)->sum('todos_total');
         $performance = $totalTodos > 0 ? ($sessions->where('user_id', Auth::user()->id)->sum('todos_completed') / $totalTodos) * 100 : 0;
