@@ -178,21 +178,25 @@ class SessionController extends Controller
         abort_if(Gate::denies('session_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $session = Session::find($request->id);
+        
         $todos = Todo::where('session_id', $request->id)->where('completed', 0)->whereHas('assigned_tos', function ($query) {
             $query->where('id', auth()->id());
         })->get();
+        
         $todo_completeds = Todo::where('session_id', $request->id)->where('completed', 1)->whereHas('assigned_tos', function ($query) {
             $query->where('id', auth()->id());
         })->get();
 
 
         $getAudioFile = new GetAudioFile;
+        
         $audio_url = $getAudioFile->getFileFromS3($session->audio_url);
         if(!$audio_url){
             $audio_url = null;
         }
 
         $assigned_tos = User::pluck('email', 'id', 'name');
+        
 
         return view('frontend.sessions.recorder', compact('session', 'audio_url', 'todos', 'todo_completeds', 'assigned_tos'));
     }
@@ -261,6 +265,7 @@ class SessionController extends Controller
             $todo->completed = 0;
             //add assigned to this user
             $todo->save();
+
             $todo->assigned_tos()->sync(auth()->id());
 
         }
@@ -275,7 +280,7 @@ class SessionController extends Controller
        
         //Send the items back to the frontend
         $json = response()->json([
-            'todo' => $todos
+            'todo' => $actions['actionable-items'],
         ]);
         return $json;       
     }

@@ -100,6 +100,7 @@ No summary available.
 </div>
 
 </div>
+
 @endsection
 @section('scripts')
   @parent
@@ -191,121 +192,6 @@ $(function() {
     }
     });
     });
-    
-    
-    let mediaRecorder;
-let audioChunks = [];
-
-// Get the record, pause, and stop buttons
-const recordButton = document.getElementById('recordButton');
-const pauseButton = document.getElementById('pauseButton');
-const stopButton = document.getElementById('stopButton');
-const statusText = document.getElementById('status');
-// When the "Record" button is clicked
-recordButton.addEventListener('click', async () => {
-    const sessionId = {{ Request::segment(3) }};
-    
-    // Check if the session status is "New"
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        url: `/check-session-status/${sessionId}`,
-        type: 'POST',
-        success: async function(response) {
-            if (response.status !== 'New') {
-                // Ask the user if they want to erase the previous recording and start over
-                const userConfirmed = confirm('A previous recording exists. Do you want to erase it and start over?');
-                if (!userConfirmed) {
-                    return;
-                }
-            } else {
-                statusText.textContent = 'Starting new recording...';
-            }
-            
-            // Proceed with recording
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-
-                mediaRecorder.start();
-                statusText.textContent = 'Recording...';
-
-                // Enable and disable the buttons as needed
-                recordButton.disabled = true;
-                pauseButton.disabled = false;
-                stopButton.disabled = false;
-
-                // Collect audio data chunks as they are available
-                mediaRecorder.addEventListener('dataavailable', event => {
-                    audioChunks.push(event.data);
-                });
-
-                mediaRecorder.addEventListener('stop', () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    const formData = new FormData();
-                    formData.append('audio', audioBlob, 'audio_recording.wav');
-                    formData.append('id', sessionId);
-
-                    $.ajax({
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        },
-                        url: '{{ route('frontend.session.upload') }}',
-                        type: 'POST',
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function(response) {
-                            console.log(response);
-                            statusText.textContent = 'Processing...';
-                            location.reload();
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Upload error:', xhr.responseText);
-                            statusText.textContent = 'Error uploading audio.';
-                        }
-                    });
-                });
-            } catch (error) {
-                console.error('Error accessing microphone:', error);
-                statusText.textContent = 'Error accessing microphone.';
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Error checking session status:', xhr.responseText);
-            statusText.textContent = 'Error checking session status.';
-        }
-    });
-});
-
-// When the "Pause" button is clicked
-pauseButton.addEventListener('click', () => {
-    if (mediaRecorder.state === 'recording') {
-        mediaRecorder.pause();
-        statusText.textContent = 'Paused recording.';
-        pauseButton.textContent = 'Resume';
-    } else if (mediaRecorder.state === 'paused') {
-        mediaRecorder.resume();
-        statusText.textContent = 'Resumed recording.';
-        pauseButton.textContent = 'Pause';
-    }
-});
-
-// When the "Stop" button is clicked
-stopButton.addEventListener('click', () => {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-        statusText.textContent = 'Stopped recording. Uploading audio...';
-
-        // Reset buttons
-        recordButton.disabled = false;
-        pauseButton.disabled = true;
-        stopButton.disabled = true;
-        pauseButton.textContent = 'Pause'; // Reset pause button text
-    }
-});
 </script>
 <script>
 $(document).ready(function() {
@@ -387,8 +273,20 @@ $('#tasker').on('click', function(e) {
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
         success: function(response) {
-           //Append each of the new todos items to the list
+        //Append each of the new todos items to the list
+        
+        //Loop through the todos and append each to the list
+        response.todo.forEach(function(todo) {
+            const todoItem = `
+                 <div class="todo-item ui-sortable-handle" data-id="${ todo.id }">
+                 <i class="fas fa-circle text-muted" style="color:#ccc!important;"></i> <a href="/todos/${ todo.id }" data-toggle="modal" data-target="#taskModal${ todo.id }">${ todo.item }
+                  <div class="small px-3">${ todo.due_date }</div></a>
+                </div>
+                `;
+            $('#pending .todo-list').append(todoItem);
             location.reload();
+        });
+        $('#tasker').html('<i class="fas fa-plus"></i> Suggest Tasks');
 
         },
         error: function(xhr, status, error) {
@@ -482,5 +380,177 @@ ClassicEditor.create(document.querySelector('.ckeditor'))
 
 
     </script>
+
+
+
+
+<script>
+let mediaRecorder;
+let audioChunks = [];
+let isPaused = false;
+let stream = null;
+let recordedTime = 0;
+let maxRecordingTime = 60 * 1000; // 60 seconds in milliseconds
+let countdownInterval = null;
+let remainingTime = maxRecordingTime / 1000; // Initial remaining time in seconds
+
+const recordButton = document.getElementById('recordButton');
+const pauseButton = document.getElementById('pauseButton');
+const stopButton = document.getElementById('stopButton');
+const statusText = document.getElementById('status');
+const audioPlayer = document.getElementById('audioPlayer');
+const uploadButton = document.getElementById('uploadButton');
+
+// Check if previous recording exists and start recording
+recordButton.addEventListener('click', async () => {
+    const sessionId = {{ Request::segment(3) }};
+    $.ajax({
+        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+        url: `/check-session-status/${sessionId}`,
+        type: 'POST',
+        success: async function(response) {
+            if (response.status !== 'New') {
+                const userConfirmed = confirm('A previous recording exists. Do you want to erase it and start over?');
+                if (!userConfirmed) {
+                    statusText.textContent = 'Recording cancelled. Previous recording retained.';
+                    return;
+                } else {
+                    statusText.textContent = 'Previous recording erased. Starting new recording...';
+                }
+            } else {
+                statusText.textContent = 'Starting new recording...';
+            }
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                startRecording();
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                statusText.textContent = 'Error accessing microphone.';
+            }
+        },
+        error: function(xhr) {
+            console.error('Error checking session status:', xhr.responseText);
+            statusText.textContent = 'Error checking session status.';
+        }
+    });
+});
+
+// Start recording and countdown
+function startRecording() {
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    remainingTime = maxRecordingTime / 1000;
+
+    mediaRecorder.start();
+    statusText.textContent = `Recording... ${remainingTime} seconds remaining`;
+    toggleButtons(true);
+
+    startCountdown();
+
+    mediaRecorder.addEventListener('dataavailable', event => audioChunks.push(event.data));
+
+    mediaRecorder.addEventListener('stop', () => {
+        clearInterval(countdownInterval);
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        playRecordedAudio(audioBlob);
+        showUploadButton(audioBlob);
+    });
+}
+
+// Countdown function
+function startCountdown() {
+    countdownInterval = setInterval(() => {
+        if (!isPaused) {
+            remainingTime--;
+            statusText.textContent = `Recording... ${remainingTime} seconds remaining`;
+
+            if (remainingTime <= 0) {
+                clearInterval(countdownInterval);
+                mediaRecorder.stop();
+                statusText.textContent = 'Max recording time reached.';
+            }
+        }
+    }, 1000);
+}
+
+// Pause or resume recording
+pauseButton.addEventListener('click', () => {
+    if (isPaused) {
+        mediaRecorder.resume();
+        startCountdown();
+        statusText.textContent = `Recording resumed... ${remainingTime} seconds remaining`;
+        pauseButton.textContent = 'Pause';
+    } else {
+        mediaRecorder.pause();
+        clearInterval(countdownInterval);
+        statusText.textContent = 'Recording paused...';
+        pauseButton.textContent = 'Resume';
+    }
+    isPaused = !isPaused;
+});
+
+// Stop recording
+stopButton.addEventListener('click', () => {
+    clearInterval(countdownInterval);
+    mediaRecorder.stop();
+    statusText.textContent = 'Recording stopped.';
+    toggleButtons(false);
+});
+
+// Play recorded audio
+function playRecordedAudio(audioBlob) {
+    const audioUrl = URL.createObjectURL(audioBlob);
+    audioPlayer.src = audioUrl;
+    audioPlayer.style.display = 'block';
+    audioPlayer.load();
+    statusText.textContent = 'Recording completed. Review the audio below.';
+}
+
+// Show upload button and handle upload
+function showUploadButton(audioBlob) {
+    uploadButton.style.display = 'inline-block';
+    uploadButton.onclick = () => {
+        const userConfirmed = confirm('Do you want to upload the recording?');
+        if (userConfirmed) {
+            uploadAudio(audioBlob);
+        } else {
+            statusText.textContent = 'Recording not uploaded.';
+        }
+    };
+}
+
+// Upload the recorded audio
+function uploadAudio(audioBlob) {
+    const formData = new FormData();
+    const sessionId = {{ Request::segment(3) }};
+    formData.append('audio', audioBlob, 'audio_recording.wav');
+    formData.append('id', sessionId);
+
+    $.ajax({
+        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+        url: '{{ route("frontend.session.upload") }}',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function() {
+            statusText.textContent = 'Audio uploaded successfully!';
+            location.reload();
+        },
+        error: function(xhr) {
+            console.error('Upload failed:', xhr.responseText);
+            statusText.textContent = 'Error uploading audio.';
+        }
+    });
+}
+
+// Toggle buttons (enable/disable)
+function toggleButtons(isRecording) {
+    recordButton.disabled = isRecording;
+    pauseButton.disabled = !isRecording;
+    stopButton.disabled = !isRecording;
+}
+
+</script>
 
 @endsection

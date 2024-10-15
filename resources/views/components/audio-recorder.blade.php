@@ -11,9 +11,14 @@
 <button id="stopButton" class="btn btn-danger btn-sm" disabled>Stop</button>
 </div>
 @if($audio_url)
-<div class="mt-4"><audio id="audioPlayer" width="100%" src="{{ $audio_url }}" controls class="audioPlayer"></audio></div>
+<div class="mt-4"><audio id="audioPlayer" width="100%" src="{{ $audio_url }}" controls class="audioPlayer"></audio>
+<button id="uploadButton" class="mt-3 btn btn-danger btn-sm" style="display: none;">Upload Recording</button></div>
+@else
+
 @endif
 <p id="status" class="mt-3">{{ $session->status ?? 'Press "Record" to start recording.'}}</p>
+<div id="reviewSection"></div>
+
 <div class="progress">
     <div id="time_left" class="progress-bar" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
 </div>
