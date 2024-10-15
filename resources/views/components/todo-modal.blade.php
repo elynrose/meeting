@@ -12,7 +12,9 @@
                     </button>
                 </div>
                     <div class="modal-body" id="modal-editor-a-{{$todo->id}}">
-                    <p><a href="#" class="edit-todo" id="{{ $todo->id }}"><i class="fas fa-edit"></i> Edit</a></p>
+                    <p><a href="#" class="edit-todo" id="{{ $todo->id }}"><i class="fas fa-edit"></i> Edit</a>
+                </p>
+                   
 
                         <p>{!! $todo->note ?? ''  !!}</p>
                         <p><strong>Due Date:</strong> {{ \Carbon\Carbon::parse($todo->due_date)->format('F j, Y') ?? '' }} @ {{ \Carbon\Carbon::parse($todo->time_due)->format('g:i A') ?? '' }}</p>
@@ -39,7 +41,14 @@
                         @component('components.todo-edit-form', ['todo' => $todo, 'assigned_tos' => $assigned_tos])
                         @endcomponent
                     </div>
-
+                    <div class="modal-footer">
+                    @can('todo_delete')
+                    <form class="small" action="{{ route('frontend.todos.destroy', $todo->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;" class="pull-right">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                    <button class="trash" type="submit" value="{{ trans('global.delete') }}"><i class="fas fa-trash"></i></button>
+                    </form>
+                    @endcan                    </div>
             </div>
         </div>
     </div>

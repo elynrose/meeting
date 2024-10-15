@@ -23,6 +23,33 @@
                             @endif
                             <span class="help-block">{{ trans('cruds.session.fields.name_helper') }}</span>
                         </div>
+
+                        <div class="form-group">
+                        <label class="required" for="language">{{ trans('cruds.session.fields.language') }}</label>
+                        <!--Add a bootstrap dropdown for language selection-->
+                            <div class="dropdown">
+                                <select class="form-control" id="language" name="language" >
+                                    <option value="English (US)">English (US)</option>
+                                    <option value="English (UK)">English (UK)</option>
+                                    <option value="Spanish">Spanish</option>
+                                    <option value="French">French</option>
+                                    <option value="German">German</option>
+                                    <option value="Italian">Italian</option>
+                                    <option value="Dutch">Dutch</option>
+                                    <option value="Portuguese">Portuguese</option>
+                                    <option value="Japanese">Japanese</option>
+                                    <option value="Chinese">Chinese</option>
+                                </select>
+                                @if($errors->has('language'))
+                                <div class="invalid-feedback">
+                                    {{ $errors->first('language') }}
+                                </div>
+                            @endif
+                            <span class="help-block">{{ trans('cruds.session.fields.language_helper') }}</span>
+                            </div>
+
+
+                        </div>
                         <!--
                         <div class="form-group">
                             <label for="audio">{{ trans('cruds.session.fields.audio') }}</label>

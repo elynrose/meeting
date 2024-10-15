@@ -36,6 +36,7 @@ class Session extends Model implements HasMedia
         'total_tasks',
         'tokens_used',
         'status',
+        'language',
         'user_id',
         'created_at',
         'updated_at',

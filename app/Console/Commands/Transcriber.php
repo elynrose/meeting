@@ -50,7 +50,7 @@ class Transcriber extends Command
 
             $transcribe = new Transcribe();
 
-            $transcribedText = $transcribe->convertMp3ToText($signedUrl);
+            $transcribedText = $transcribe->convertMp3ToText($signedUrl, $first_session->language);
 
             //Save the transcribed text to the database
             $first_session->transcription = $transcribedText;
@@ -58,7 +58,7 @@ class Transcriber extends Command
 
             //Summarise the transcribed text
             $summerizer = new Summerizer();
-            $summaryText = $summerizer->summarize($transcribedText);
+            $summaryText = $summerizer->summarize($transcribedText, $first_session->language);
 
             if($summaryText){
                 $first_session->summary = $summaryText;

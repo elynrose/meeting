@@ -25,6 +25,10 @@ class StoreSessionRequest extends FormRequest
                 'string',
                 'nullable',
             ],
+            'language' => [
+                'string',
+                'nullable',
+            ],
             'task_created' => [
                 'nullable',
                 'integer',

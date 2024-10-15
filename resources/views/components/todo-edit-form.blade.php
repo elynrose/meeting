@@ -4,6 +4,20 @@
                             @method('PUT')
                             @csrf
                             <div class="form-group">
+                                <div>
+                                    <input type="hidden" name="priority" value="0">
+                                    <input type="checkbox" name="priority" id="priority" value="1" {{ $todo->priority || old('priority', 0) === 1 ? 'checked' : '' }}>
+                                    <label for="priority"><i class="fas fa-flag" style="color:red;"></i> {{ trans('cruds.todo.fields.priority') }}</label>
+                                </div>
+                                @if($errors->has('priority'))
+                                    <div class="invalid-feedback">
+                                        {{ $errors->first('priority') }}
+                                    </div>
+                                @endif
+                                <span class="help-block">{{ trans('cruds.todo.fields.priority_helper') }}</span>
+                                </div>
+
+                            <div class="form-group">
                                 <label for="item">{{ trans('cruds.todo.fields.item') }}</label>
                                 <input class="form-control" type="text" name="item" id="item" value="{{ old('item', $todo->item) }}">
                                 @if($errors->has('item'))
@@ -56,6 +70,8 @@
                                 @endif
                                 <span class="help-block">{{ trans('cruds.todo.fields.send_reminder_helper') }}</span>
                             </div>
+
+                           
                             <div class="form-group">
                             <input type="hidden" name="assigned_tos[]" value="{{ auth()->user()->id }}">
 

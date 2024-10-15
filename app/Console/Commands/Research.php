@@ -35,6 +35,8 @@ class Research extends Command
             return json_encode(['error'=>'No new research found']);
         }
 
+       // $session = $todo->session;
+
         //Get the research result
         $researcher = new Researcher();
         $topic = "Title: ".$todo->item." Details:".$todo->note;

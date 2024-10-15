@@ -28,7 +28,7 @@
                                     <div class="row">
                                         <div class="mb-1 col-md-5 col-sm-12 small">@if($session->todos_pending==0) {{ trans('cruds.session.custom.todo_completed') }}  @else <i class="fas fa-warning gold"></i> {{ $session->todos_pending ?? 'No' }} {{ trans('cruds.session.custom.todo_pending') }} @endif</div>
                                         <div class="small col-sm-12 col-md-3">{{ $session->status }} </div> 
-                                        <div class="col-md-3 col-sm-12 small">{{ $session->created_at->diffForHumans() }} </div>
+                                        <div class="col-md-3 col-sm-12 small">{{ $session->created_at->diffForHumans() }}</div>
                                         <div class="col-md-1 col-sm-12 small">
                                         @can('session_delete')
                                                 <form action="{{ route('frontend.sessions.destroy', $session->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">

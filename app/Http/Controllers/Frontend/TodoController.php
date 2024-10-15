@@ -92,4 +92,30 @@ class TodoController extends Controller
 
         return response(null, Response::HTTP_NO_CONTENT);
     }
+
+    /*
+    Write a function that colors a fa-icon based on the date and 
+    #status of the todo. If the todo is overdue, the icon should be red. 
+    #If the todo is due today, the icon should be yellow. If the todo is due in the future, 
+    #the icon should be green. 
+    */
+
+    public function colorIcon($date, $status)
+    {
+        $color = '';
+        if ($date < now()->addDays(5) && $status == 0) {
+            $color = 'gold';
+        } elseif ($date == now()->addDays(3) && $status == 0) {
+            $color = 'gold';
+        } elseif ($date == now() && $status == 0) {
+            $color = 'red';
+        } elseif ($date > now()->subDays(7) && $status == 0) {
+            $color = 'green';
+        } elseif ($date > now()->addDays(15) && $status == 0) {
+            $color = 'green';
+        } elseif ($date < now() && $status == 0) {
+            $color = 'red';
+        }
+        return $color;
+    }
 }

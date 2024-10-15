@@ -1,199 +1,93 @@
-@extends('layouts.frontend')
-<div class="container-fluid">
-@section('content')
-<div class="container">
-@if(session('status'))
-    <div class="alert alert-success" role="alert">
-     {{ session('status') }}
-     </div>
-@endif
-
-<h2 class="mb-4">{{ $session->name }}</h2>
-
-@component('components.assigned-to', ['assigned_tos' => $assigned_tos, 'session' => $session])
-@endcomponent
-
-@component('components.audio-recorder', ['audio_url' => $audio_url])
-@endcomponent
-
-@component('components.summary-notes', ['session' => $session])
-@endcomponent
-
-
-<!-- Pending To-Do List Card -->
-<div class="col-md-6" id="pending">
-<div class="card">
-<div class="card-header">
-Pending
-</div>
-<div class="card-body todo-list">
-<a id="tasker" href="/create-todo-list/{{ $session->id }}"><i class="fas fa-plus"></i> Suggest Tasks</a>
-<hr>
-  @component('components.todo-list', ['todos' => $todos])
-  @endcomponent
-</div>
-</div>
-</div>
-
-
-<!-- Completed To-Do List Card -->
-<div class="col-md-6" id="completed">
-<div class="card">
-<div class="card-header">
-Completed
-</div>
-<div class="card-body todo-list">
-   @component('components.todo-list-completed', ['todo_completeds' => $todo_completeds])
-   @endcomponent
-</div>
-</div>
-</div>
-</div>
-</div>
-
-@component('components.todo-modal', ['todos' => $todos, 'assigned_tos' => $assigned_tos])
-@endcomponent
-
-<!-- Modal Template for Summary -->
-<div class="modal fade" id="summaryTextModal" tabindex="-1" role="dialog" aria-labelledby="summaryTextModal" aria-hidden="true">
-<div class="modal-dialog" role="document">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title" id="summaryTextModalTitle">Summary</h5>
-<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-<span aria-hidden="true">&times;</span>
-</button>
-</div>
-<div class="modal-body" id="summaryText">
-<p id="summaryText" class="summaryDiv">
-@if($session->summary)
-{{ $session->summary }}
-@else
-No summary available.
-@endif
-
-</p>
-
-</div>
-</div>
-</div>
-
-   
-</div>
-
-
-<!-- Modal for Original Text -->
-<div class="modal fade" id="originalTextModal" tabindex="-1" role="dialog" aria-labelledby="originalTextModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="originalTextModalLabel">Original Text</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p id="transcriptionText">{{ $session->transcription ?? 'No original text available.' }}</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-</div>
-@endsection
-@section('scripts')
-  @parent
-  <script>
-    // Re-enable Drag and Drop
 $(function() {
+    // Initialize sortable functionality for todo lists
     $("#pending .todo-list, #completed .todo-list").sortable({
-    connectWith: ".todo-list", // Allow dragging between lists
-    receive: function(event, ui) {
-    const todoId = $(ui.item).data('id');
-    const newStatus = $(this).closest('.col-md-6').attr('id') === 'completed' ? 'completed' : 'pending';
-    // AJAX request to update task status
-    $.ajax({
-    url: '/update-todo-status',
-    method: 'POST',
-    data: {
-    id: todoId,
-    status: newStatus,
-    _token: '{{ csrf_token() }}' // Laravel CSRF protection
-    },
-    success: function(response) {
-    location.reload();
-    },
-    error: function() {
-    console.error('Error updating task status');
-    }
-    });
-    }
+        connectWith: ".todo-list", // Allow dragging between lists
+        receive: function(event, ui) {
+            const todoId = $(ui.item).data('id');
+            const newStatus = $(this).closest('.col-md-6').attr('id') === 'completed' ? 'completed' : 'pending';
+            // AJAX request to update task status
+            $.ajax({
+                url: '/update-todo-status',
+                method: 'POST',
+                data: {
+                    id: todoId,
+                    status: newStatus,
+                    _token: '{{ csrf_token() }}' // Laravel CSRF protection
+                },
+                success: function(response) {
+                    location.reload();
+                },
+                error: function() {
+                    console.error('Error updating task status');
+                }
+            });
+        }
     }).disableSelection();
-    });
-    
-    // AJAX form submission for each task's comment
-    $('#commentForm1').on('submit', function(e) {
+});
+
+// AJAX form submission for each task's comment
+$('#commentForm1').on('submit', function(e) {
     e.preventDefault();
     const comment = $('#comment1').val();
     $.ajax({
-    url: '/submit-comment',
-    method: 'POST',
-    data: {
-    taskId: 1,
-    comment: comment,
-    _token: '{{ csrf_token() }}'
-    },
-    success: function(response) {
-    alert('Comment added for task 1');
-    },
-    error: function() {
-    alert('Error adding comment');
-    }
+        url: '/submit-comment',
+        method: 'POST',
+        data: {
+            taskId: 1,
+            comment: comment,
+            _token: '{{ csrf_token() }}'
+        },
+        success: function(response) {
+            alert('Comment added for task 1');
+        },
+        error: function() {
+            alert('Error adding comment');
+        }
     });
-    });
-    
-    $('#commentForm2').on('submit', function(e) {
+});
+
+$('#commentForm2').on('submit', function(e) {
     e.preventDefault();
     const comment = $('#comment2').val();
     $.ajax({
-    url: '/submit-comment',
-    method: 'POST',
-    data: {
-    taskId: 2,
-    comment: comment,
-    _token: '{{ csrf_token() }}'
-    },
-    success: function(response) {
-    alert('Comment added for task 2');
-    },
-    error: function() {
-    alert('Error adding comment');
-    }
+        url: '/submit-comment',
+        method: 'POST',
+        data: {
+            taskId: 2,
+            comment: comment,
+            _token: '{{ csrf_token() }}'
+        },
+        success: function(response) {
+            alert('Comment added for task 2');
+        },
+        error: function() {
+            alert('Error adding comment');
+        }
     });
-    });
-    
-    $('#commentForm3').on('submit', function(e) {
+});
+
+$('#commentForm3').on('submit', function(e) {
     e.preventDefault();
     const comment = $('#comment3').val();
     $.ajax({
-    url: '/submit-comment',
-    method: 'POST',
-    data: {
-    taskId: 3,
-    comment: comment,
-    _token: '{{ csrf_token() }}'
-    },
-    success: function(response) {
-    alert('Comment added for task 3');
-    },
-    error: function() {
-    alert('Error adding comment');
-    }
+        url: '/submit-comment',
+        method: 'POST',
+        data: {
+            taskId: 3,
+            comment: comment,
+            _token: '{{ csrf_token() }}'
+        },
+        success: function(response) {
+            alert('Comment added for task 3');
+        },
+        error: function() {
+            alert('Error adding comment');
+        }
     });
-    });
-    
-    
-    let mediaRecorder;
+});
+
+// Audio recording functionality
+let mediaRecorder;
 let audioChunks = [];
 
 // Get the record, pause, and stop buttons
@@ -201,6 +95,7 @@ const recordButton = document.getElementById('recordButton');
 const pauseButton = document.getElementById('pauseButton');
 const stopButton = document.getElementById('stopButton');
 const statusText = document.getElementById('status');
+
 // When the "Record" button is clicked
 recordButton.addEventListener('click', async () => {
     const sessionId = {{ Request::segment(3) }};
@@ -305,8 +200,8 @@ stopButton.addEventListener('click', () => {
         pauseButton.textContent = 'Pause'; // Reset pause button text
     }
 });
-</script>
-<script>
+
+// Document ready function
 $(document).ready(function() {
     const statusText = document.getElementById('status');
     // Extract session ID from the URL
@@ -321,7 +216,6 @@ $(document).ready(function() {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             success: function(data) {
-
                 statusText.textContent = '';
                 // Update the content of the divs if there are any changes
                 if (data.transcription) {
@@ -338,13 +232,11 @@ $(document).ready(function() {
         });
     }
 
-    // Periodically check for updates every 5 seconds
+    // Periodically check for updates every 30 seconds
     setInterval(checkForUpdates, 30000);
 });
-</script>
 
-<script>
-//When the user types into #notes, wait for 5 seconds of inactivity before saving the notes
+// Save notes functionality
 let timeoutId;
 $('#spinner-circle').hide();
 document.getElementById('notes').addEventListener('input', function() {
@@ -356,7 +248,7 @@ document.getElementById('notes').addEventListener('input', function() {
             url: '/save-notes',
             method: 'POST',
             data: {
-                id: {{ Request::segment(3) }},
+                id: sessionId,
                 notes: notes,
                 _token: '{{ csrf_token() }}'
             },
@@ -371,10 +263,8 @@ document.getElementById('notes').addEventListener('input', function() {
         });
     }, 5000);
 });
-</script>
 
-<script>
-/* when #tasker is clicked, send a jquery ajax post with the session id to  createToDoList route */
+// Task suggestion functionality
 $('#tasker').on('click', function(e) {
     e.preventDefault();
     $('#tasker').html('<i class="fas fa-spinner fa-spin"></i> Suggesting Tasks...');
@@ -386,21 +276,16 @@ $('#tasker').on('click', function(e) {
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
         success: function(response) {
-           //Append each of the new todos items to the list
+            // Append each of the new todos items to the list
             location.reload();
-
         },
         error: function(xhr, status, error) {
             console.error('Error creating to-do list:', xhr.responseText);
         }
     });
 });
-</script>
 
-<script>
-   // $('.research_result').hide();
-
-/* When research is checked, send a jquery ajax request to update todo for the session, set research to 1 */
+// Update research status functionality
 $('input[name="research"]').on('change', function() {
     const todoId = $(this).data('id');
     const isChecked = $(this).is(':checked');
@@ -436,8 +321,7 @@ $('input[name="research"]').on('change', function() {
     });
 });
 
-
-//Write js that submits any form with class autopost when its submit button is clicked, use ajax to submit the form without refreshing the page.
+// Auto-submit form functionality
 $('.autopost .alert').hide();
 $('.autopost').on('submit', function(e) {
     e.preventDefault();
@@ -453,7 +337,7 @@ $('.autopost').on('submit', function(e) {
         success: function(response) {
             $('.autopost .alert').removeClass('alert-success').text('');
             $('.autopost .alert').addClass('alert-success').text('Form submitted successfully.').show();
-            location.reload()
+            location.reload();
         },
         error: function(xhr, status, error) {
             $('.autopost .alert').addClass('alert-danger').text('Error submitting form:', xhr.responseText).show();
@@ -462,8 +346,7 @@ $('.autopost').on('submit', function(e) {
     });
 });
 
-//when the edit-todo link is clicked, show the form and hide the paragraph
-//hide the form first
+// Edit todo functionality
 $('.modal-editor-form').hide();
 $('.edit-todo').on('click', function(e) {
     e.preventDefault();
@@ -472,14 +355,8 @@ $('.edit-todo').on('click', function(e) {
     $('#modal-editor-b-' + todoId).show();
 });
 
-
-//Add CKEditor to the textarea with class ckeditor
+// Add CKEditor to the textarea with class ckeditor
 ClassicEditor.create(document.querySelector('.ckeditor'))
     .catch(error => {
         console.error(error);
     });
-
-
-    </script>
-
-@endsection

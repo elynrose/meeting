@@ -25,6 +25,10 @@ class UpdateSessionRequest extends FormRequest
                 'string',
                 'nullable',
             ],
+            'language' => [
+                'string',
+                'nullable',
+            ],
             'task_created' => [
                 'nullable',
                 'integer',

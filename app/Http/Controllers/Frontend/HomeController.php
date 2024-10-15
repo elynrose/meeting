@@ -14,32 +14,32 @@ class HomeController
         $sessions = Session::whereHas('todos.assigned_tos', function ($query) {
             $query->where('id', auth()->id());
         })->get()->map(function ($session) {
-            $session->todos_total = Todo::where('session_id', $session->id)->whereHas('assigned_tos', function ($query) {
-                $query->where('id', auth()->id());
+            $session->todos_total = Todo::where('session_id', $session->id)->whereNull('deleted_at')->whereHas('assigned_tos', function ($query) {
+            $query->where('id', auth()->id());
             })->count();
 
-            $session->todos_pending = Todo::where('session_id', $session->id)->where('completed', 0)->whereHas('assigned_tos', function ($query) {
-                $query->where('id', auth()->id());
+            $session->todos_pending = Todo::where('session_id', $session->id)->where('completed', 0)->whereNull('deleted_at')->whereHas('assigned_tos', function ($query) {
+            $query->where('id', auth()->id());
             })->count();
 
-            $session->todos_completed = Todo::where('session_id', $session->id)->where('completed', 1)->whereHas('assigned_tos', function ($query) {
-                $query->where('id', auth()->id());
+            $session->todos_completed = Todo::where('session_id', $session->id)->where('completed', 1)->whereNull('deleted_at')->whereHas('assigned_tos', function ($query) {
+            $query->where('id', auth()->id());
             })->count();
 
             return $session;
         });
 
         $performance = [
-            'total_todos' => Todo::whereHas('assigned_tos', function ($query) {
-                $query->where('id', auth()->id());
+            'total_todos' => Todo::whereNull('deleted_at')->whereHas('assigned_tos', function ($query) {
+            $query->where('id', auth()->id());
             })->count(),
             
-            'total_completed' => Todo::where('completed', 1)->whereHas('assigned_tos', function ($query) {
-                $query->where('id', auth()->id());
+            'total_completed' => Todo::where('completed', 1)->whereNull('deleted_at')->whereHas('assigned_tos', function ($query) {
+            $query->where('id', auth()->id());
             })->count(),
 
-            'total_pending' => Todo::where('completed', 0)->whereHas('assigned_tos', function ($query) {
-                $query->where('id', auth()->id());
+            'total_pending' => Todo::where('completed', 0)->whereNull('deleted_at')->whereHas('assigned_tos', function ($query) {
+            $query->where('id', auth()->id());
             })->count(),
         ];
 
