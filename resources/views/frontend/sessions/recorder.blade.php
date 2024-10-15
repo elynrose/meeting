@@ -260,6 +260,7 @@ recordButton.addEventListener('click', async () => {
                         success: function(response) {
                             console.log(response);
                             statusText.textContent = 'Processing...';
+                            location.reload();
                         },
                         error: function(xhr, status, error) {
                             console.error('Upload error:', xhr.responseText);
