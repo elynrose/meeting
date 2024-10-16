@@ -6,7 +6,7 @@ use App\Models\Todo;
 use App\Http\Controllers\Controller;
 use Auth;
 use App\Models\User;
-use LaravelDaily\LaravelCharts\Classes\LaravelChart;
+use LaravelDaily\LaravelCharts\Classes\LaravelTodoChart;
 
 
 class HomeController
@@ -60,23 +60,23 @@ class HomeController
 
 
         $settings8 = [
-            'chart_title'           => 'Credit Usage',
+            'chart_title'           => 'Todos Completed',
             'chart_type'            => 'line',
             'report_type'           => 'group_by_date',
-            'model'                 => 'App\Models\Credit',
+            'model'                 => 'App\Models\Todo',
             'group_by_field'        => 'created_at',
             'group_by_period'       => 'day',
             'aggregate_function'    => 'sum',
-            'aggregate_field'       => 'points',
+            'aggregate_field'       => 'completed',
             'filter_field'          => 'created_at',
             'filter_days'           => '30',
             'group_by_field_format' => 'Y-m-d H:i:s',
             'column_class'          => 'col-md-12',
             'entries_number'        => '5',
-            'translation_key'       => 'credit',
+            'translation_key'       => 'todos',
         ];
 
-        $chart8 = new LaravelChart($settings8);
+        $chart8 = new LaravelTodoChart($settings8);
 
         
         return view('frontend.home', compact('sessions', 'performance', 'assigned', 'assigned_count', 'chart8'));

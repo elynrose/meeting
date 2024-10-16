@@ -223,7 +223,33 @@ class SessionController extends Controller
         }
 
         $credits = Credit::where('email', Auth::user()->email)->first();
+        //if user has no credits give them 10 credits
+        if(!$credits){
+            $credits = new Credit;
+            $credits->email = Auth::user()->email;
+            $credits->points = 10;
+            $credits->save();
+        }
         $credits = $credits->points;
+
+
+        //if user does not have todos for this session create one
+        $todos = Todo::where('session_id', $request->id)->whereHas('assigned_tos', function ($query) {
+            $query->where('id', auth()->id());
+        })->get();
+
+        if($todos->count() == 0){
+            $todo = new Todo;
+            $todo->session_id = $request->id;
+            $todo->item = 'Do something adventurous';
+            $todo->note = 'We have created a free task for you to get started. You can add more tasks by clicking the add new recording button.';
+            $todo->due_date = date('Y-m-d');
+            $todo->time_due = date('H:i:s');
+            $todo->completed = 0;
+            //add assigned to this user
+            $todo->save();
+            $todo->assigned_tos()->sync(auth()->id());
+        }   
         
         $todos = Todo::where('session_id', $request->id)->where('completed', 0)->whereHas('assigned_tos', function ($query) {
             $query->where('id', auth()->id());
