@@ -543,6 +543,11 @@ function uploadAudio(audioBlob) {
     const sessionId = {{ Request::segment(3) }};
     formData.append('audio', audioBlob, 'audio_recording.wav');
     formData.append('id', sessionId);
+    //Add seconds recorded to the form data
+    formData.append('recorded_time', recordedTime);
+    //Add max time allowed to the form data
+    formData.append('max_time', maxRecordingTime / 1000);
+    
 
     $.ajax({
         headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
