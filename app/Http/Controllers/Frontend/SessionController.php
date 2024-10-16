@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\GetAudioFile;
 use App\Models\Todo;
 use App\Models\Tasker;
+use App\Models\Credit;
+use Auth;
 
 
 
@@ -63,6 +65,8 @@ class SessionController extends Controller
 
     public function upload(Request $request)
     {
+        \Log::info($request);
+
         if($request->has('id')) {
             $session = Session::find($request->id);
         } else {
@@ -74,7 +78,25 @@ class SessionController extends Controller
             $request->validate([
                 'audio' => 'required|file|mimes:mp3,mp4,wav,ogg,m4a,webm',
             ]);
-            
+
+            /*Delete the old audio file
+            if($session->audio_url){
+                $getAudioFile = new GetAudioFile;
+                $getAudioFile->deleteFileFromS3($session->audio_url);
+            }
+            */
+
+            //get the max time limit
+            $maxTime = $request->max_time;
+            //get the recorded time
+            $recordedTime = $request->recorded_time;
+
+
+
+            //chech if recorded time is more than the max time limit
+            if($recordedTime > $maxTime){
+                return response()->json(['error' => 'Recording time is more than the maximum time limit.'], 400);
+            } 
 
             //Get the audio file contents
             $audio = file_get_contents($request->audio);
@@ -93,7 +115,22 @@ class SessionController extends Controller
             $session->status = 'New';
             
             //Save to the session
-            $session->save();
+            if($session->save()){
+            //Calculate and deduct the credits  
+            $credits = Credit::where('email', Auth::user()->email)->first();
+            $credits_per_second = ($credits->points * env('COST_PER_SECOND'));
+            $credits_bal = ($credits_per_second - $recordedTime);
+            $credits_count = $credits_bal / env('COST_PER_SECOND');
+            //Round up the credits to two decimal places
+            $credits_count = round($credits_count, 1);
+            $credits->points=$credits_count;
+            $credits->save();
+
+            return response()->json(['success' => 'Audio file uploaded.'], 200);
+
+            } else {
+                return response()->json(['error' => 'Error saving the audio file.'], 400);
+            }
 
             return response()->json(['success' => 'Audio file uploaded.'], 200);
         } else {
@@ -177,7 +214,16 @@ class SessionController extends Controller
     {
         abort_if(Gate::denies('session_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+       
         $session = Session::find($request->id);
+        
+        //if session user is not the current user, redirect to the dashboard
+        if($session->user_id != auth()->id()){
+            return redirect()->route('frontend.home');
+        }
+
+        $credits = Credit::where('email', Auth::user()->email)->first();
+        $credits = $credits->points;
         
         $todos = Todo::where('session_id', $request->id)->where('completed', 0)->whereHas('assigned_tos', function ($query) {
             $query->where('id', auth()->id());
@@ -198,7 +244,7 @@ class SessionController extends Controller
         $assigned_tos = User::pluck('email', 'id', 'name');
         
 
-        return view('frontend.sessions.recorder', compact('session', 'audio_url', 'todos', 'todo_completeds', 'assigned_tos'));
+        return view('frontend.sessions.recorder', compact('session', 'audio_url', 'todos', 'todo_completeds', 'assigned_tos', 'credits'));
     }
 
 
@@ -237,7 +283,7 @@ class SessionController extends Controller
         $sessionId = $request->id;
         $toDoList = $request->toDoList;
         $relatedTodos = Todo::where('session_id', $sessionId)->get();
-        $relatedTodo = " Do not repeat these already assigned tasks: ";
+        $relatedTodo = " Do not include these already assigned tasks: ";
         if($relatedTodos){
             foreach($relatedTodos as $todo){
                 $relatedTodo .= $todo->item . ', ';

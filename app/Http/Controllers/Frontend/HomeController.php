@@ -6,6 +6,8 @@ use App\Models\Todo;
 use App\Http\Controllers\Controller;
 use Auth;
 use App\Models\User;
+use LaravelDaily\LaravelCharts\Classes\LaravelChart;
+
 
 class HomeController
 {
@@ -55,8 +57,29 @@ class HomeController
         $assigned = Todo::whereHas('assigned_tos', function ($query) {
             $query->where('id', auth()->id());
         })->get();
+
+
+        $settings8 = [
+            'chart_title'           => 'Credit Usage',
+            'chart_type'            => 'line',
+            'report_type'           => 'group_by_date',
+            'model'                 => 'App\Models\Credit',
+            'group_by_field'        => 'created_at',
+            'group_by_period'       => 'day',
+            'aggregate_function'    => 'sum',
+            'aggregate_field'       => 'points',
+            'filter_field'          => 'created_at',
+            'filter_days'           => '30',
+            'group_by_field_format' => 'Y-m-d H:i:s',
+            'column_class'          => 'col-md-12',
+            'entries_number'        => '5',
+            'translation_key'       => 'credit',
+        ];
+
+        $chart8 = new LaravelChart($settings8);
+
         
-        return view('frontend.home', compact('sessions', 'performance', 'assigned', 'assigned_count'));
+        return view('frontend.home', compact('sessions', 'performance', 'assigned', 'assigned_count', 'chart8'));
 
       } else {
         $users = User::all();

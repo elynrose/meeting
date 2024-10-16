@@ -10,6 +10,8 @@
 
 <h2 class="mb-4">{{ $session->name }}</h2>
 
+
+
 @component('components.assigned-to', ['assigned_tos' => $assigned_tos, 'session' => $session])
 @endcomponent
 
@@ -19,7 +21,15 @@
 @component('components.summary-notes', ['session' => $session])
 @endcomponent
 
-
+<div class="col-md-12">
+    <div class="card">
+        <div class="card-header">Summary</div>
+    
+    <div class="card-body">
+        {{ $session->summary }}    
+    </div>
+</div>
+</div>
 <!-- Pending To-Do List Card -->
 <div class="col-md-6" id="pending">
 <div class="card">
@@ -49,7 +59,10 @@ Completed
 </div>
 </div>
 </div>
+
+
 </div>
+
 
 @component('components.todo-modal', ['todos' => $todos, 'assigned_tos' => $assigned_tos])
 @endcomponent
@@ -217,7 +230,6 @@ $(document).ready(function() {
                 if (data.summary) {
                     $('#summaryText').text(data.summary);
                 }
-                console.log('Checked for updates:', data);
             },
             error: function(xhr, status, error) {
                 console.error('Error fetching updates:', xhr.responseText);
@@ -384,7 +396,7 @@ let audioChunks = [];
 let isPaused = false;
 let stream = null;
 let recordedTime = 0;
-let maxRecordingTime = 400 * 1000; // 60 seconds in milliseconds
+let maxRecordingTime = {{ $credits * env('COST_PER_SECOND') }} * 1000; // 60 seconds in milliseconds
 let countdownInterval = null;
 let remainingTime = maxRecordingTime / 1000; // Initial remaining time in seconds
 
@@ -505,30 +517,39 @@ function playRecordedAudio(audioBlob) {
 
 // Function to show the upload button and enable audio upload
 function showUploadButton(audioBlob, recordedTime) {
-    // Log the audioBlob details to ensure it's available
     console.log('Audio Blob is ready:', {
         type: audioBlob.type,
         size: audioBlob.size
     });
 
-    // Ensure the upload button is visible
     uploadButton.style.display = 'inline-block'; // Show the upload button
     uploadButton.disabled = false; // Ensure the button is enabled
 
-    // When the upload button is clicked, trigger the upload process
-    uploadButton.addEventListener('click', () => {
-        const userConfirmed = confirm(`Do you want to upload the recording? (Recorded time: ${recordedTime} seconds)`);
-        if (userConfirmed) {
-            statusText.textContent = 'Uploading now...';
-            uploadAudio(audioBlob); // Upload the recorded audio
-        } else {
-            statusText.textContent = 'Recording not uploaded.';
-        }
-    });
-    
-    // Log to confirm the upload button is displayed
+    // Store the audioBlob and recordedTime globally so that it can be accessed by the upload event listener
+    uploadButton.audioBlob = audioBlob;
+    uploadButton.recordedTime = recordedTime;
+
     console.log('Upload button displayed and ready for interaction.');
 }
+
+// Add the event listener here to ensure it only gets added once
+uploadButton.addEventListener('click', () => {
+    const audioBlob = uploadButton.audioBlob;
+    const recordedTime = uploadButton.recordedTime;
+
+    if (!audioBlob) {
+        statusText.textContent = 'No recording available to upload.';
+        return;
+    }
+
+    const userConfirmed = confirm(`Do you want to upload the recording? (Recorded time: ${recordedTime} seconds)`);
+    if (userConfirmed) {
+        statusText.textContent = 'Uploading now...';
+        uploadAudio(audioBlob); // Upload the recorded audio
+    } else {
+        statusText.textContent = 'Recording not uploaded.';
+    }
+});
 
 //Add a method that updates a bootstrap progress bar to show the time left for recording
 function updateProgressBar() {
@@ -543,11 +564,10 @@ function uploadAudio(audioBlob) {
     const sessionId = {{ Request::segment(3) }};
     formData.append('audio', audioBlob, 'audio_recording.wav');
     formData.append('id', sessionId);
-    //Add seconds recorded to the form data
+    // Add seconds recorded to the form data
     formData.append('recorded_time', recordedTime);
-    //Add max time allowed to the form data
+    // Add max time allowed to the form data
     formData.append('max_time', maxRecordingTime / 1000);
-    
 
     $.ajax({
         headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
@@ -556,9 +576,11 @@ function uploadAudio(audioBlob) {
         data: formData,
         processData: false,
         contentType: false,
-        success: function() {
-            statusText.textContent = 'Audio uploaded successfully!';
-            location.reload();
+        success: function(data) {
+            console.log(data);
+            //parse the response and display the message
+            let response = $.parseJSON(data);
+            console.log(response);
         },
         error: function(xhr) {
             console.error('Upload failed:', xhr.responseText);
@@ -573,6 +595,7 @@ function toggleButtons(isRecording) {
     pauseButton.disabled = !isRecording;
     stopButton.disabled = !isRecording;
 }
+
 
 </script>
 
