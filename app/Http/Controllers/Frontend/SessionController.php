@@ -181,11 +181,11 @@ class SessionController extends Controller
         
         $todos = Todo::where('session_id', $request->id)->where('completed', 0)->whereHas('assigned_tos', function ($query) {
             $query->where('id', auth()->id());
-        })->get();
+        })->orderBy('due_date', 'asc')->get();
         
         $todo_completeds = Todo::where('session_id', $request->id)->where('completed', 1)->whereHas('assigned_tos', function ($query) {
             $query->where('id', auth()->id());
-        })->get();
+        })->orderBy('due_date', 'asc')->get();
 
 
         $getAudioFile = new GetAudioFile;
@@ -265,7 +265,6 @@ class SessionController extends Controller
             $todo->completed = 0;
             //add assigned to this user
             $todo->save();
-
             $todo->assigned_tos()->sync(auth()->id());
 
         }
@@ -276,14 +275,17 @@ class SessionController extends Controller
         //Get all todos for this session
         $todos = Todo::where('session_id', $session->id)->whereHas('assigned_tos', function ($query) {
             $query->where('id', auth()->id());
-        })->get();
+        })->orderBy('due_date', 'asc')->get();
        
         //Send the items back to the frontend
         $json = response()->json([
-            'todo' => $actions['actionable-items'],
+            'todo' => $todos
         ]);
         return $json;       
     }
+
+
+   
 
 
     public function saveNotes(Request $request)
@@ -353,7 +355,7 @@ class SessionController extends Controller
         if($isChecked == 'true'){
             $todo->research = 1;
         } else {
-            $todo->research_result = null;
+         //   $todo->research_result = null;
             $todo->research = 0;
         }
         

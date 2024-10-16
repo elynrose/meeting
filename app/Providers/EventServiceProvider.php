@@ -11,6 +11,7 @@ use App\Models\Session;
 use App\Observers\AssignedToActionObserver;
 use App\Observers\TodoCompletedActionObserver;
 use App\Models\Todo;
+use App\Observers\ResearchActionObserver;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -32,8 +33,10 @@ class EventServiceProvider extends ServiceProvider
     {
         //
         Session::observe(SessionActionObserver::class);
-        Todo::observe(AssignedToActionObserver::class);
-        Todo::observe(TodoCompletedActionObserver::class);
+       // Todo::observe(AssignedToActionObserver::class);
+       // Todo::observe(TodoCompletedActionObserver::class);
+        Todo::observe(ResearchActionObserver::class);
+
     }
 
     /**

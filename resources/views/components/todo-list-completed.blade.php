@@ -1,6 +1,6 @@
 @if(!$todo_completeds->isEmpty())
     @foreach($todo_completeds as $todo_completed)
-    <div class="todo-item ui-sortable-handle" data-id="{{ $todo_completed->id }}">
+    <div class="todo-item ui-sortable-handle" data-id="{{ $todo_completed->id }}" data-ordering="{{ $todo_completed->ordering }}">
     @php
         $date = $todo_completed->due_date;
         $status = $todo_completed->status;

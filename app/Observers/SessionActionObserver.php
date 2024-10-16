@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Notification;
 use App\Models\GetAudioFile;
 use App\Models\Transcribe;
 use App\Models\Summerizer;
+use App\Models\Tasker;
+use App\Models\Todo;
 
 class SessionActionObserver
 {
@@ -56,6 +58,30 @@ class SessionActionObserver
             }
             
             $first_session->save();
+
+            //Assign the transcription task to a user
+            $tasker = new Tasker();
+            $items = $tasker->createTasks('Copy: '.$transcribedText.' Notes:'.$first_session->notes);
+              //Convert items to array
+            $actions = json_decode($items, true);
+      
+        //foreach item add the session id and save to the database
+        foreach($actions['actionable-items'] as $action){
+            $todo = new Todo;
+            $todo->session_id =  $first_session->id;
+            $todo->item = $action['item'];
+            $todo->note = $action['note'];
+            $todo->due_date = $action['due_date'];
+            $todo->time_due = $action['time_due'];
+            $todo->completed = 0;
+            //add assigned to this user
+            $todo->save();
+            $todo->assigned_tos()->sync(auth()->id());
+
+        }
+            // Notify the user that the transcription process is completed
+
+
 
             if ($user) {
             // Transcription process completed

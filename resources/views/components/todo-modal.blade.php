@@ -12,8 +12,7 @@
                     </button>
                 </div>
                     <div class="modal-body" id="modal-editor-a-{{$todo->id}}">
-                    <p><a href="#" class="edit-todo" id="{{ $todo->id }}"><i class="fas fa-edit"></i> Edit</a>
-                </p>
+                   
                    
 
                         <p>{!! $todo->note ?? ''  !!}</p>
@@ -42,13 +41,16 @@
                         @endcomponent
                     </div>
                     <div class="modal-footer">
+                    <p><a href="#" class="edit-todo px-2" id="{{ $todo->id }}"><i class="fas fa-edit"></i></a>
+                    </p>
                     @can('todo_delete')
                     <form class="small" action="{{ route('frontend.todos.destroy', $todo->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;" class="pull-right">
                     <input type="hidden" name="_method" value="DELETE">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
                     <button class="trash" type="submit" value="{{ trans('global.delete') }}"><i class="fas fa-trash"></i></button>
                     </form>
-                    @endcan                    </div>
+                    @endcan      
+                              </div>
             </div>
         </div>
     </div>

@@ -276,6 +276,7 @@ $('#tasker').on('click', function(e) {
         //Append each of the new todos items to the list
         
         //Loop through the todos and append each to the list
+        $('#pending .todo-list').empty();
         response.todo.forEach(function(todo) {
             const todoItem = `
                  <div class="todo-item ui-sortable-handle" data-id="${ todo.id }">
@@ -283,11 +284,12 @@ $('#tasker').on('click', function(e) {
                   <div class="small px-3">${ todo.due_date }</div></a>
                 </div>
                 `;
+          
             $('#pending .todo-list').append(todoItem);
-            location.reload();
         });
         $('#tasker').html('<i class="fas fa-plus"></i> Suggest Tasks');
 
+        location.reload();
         },
         error: function(xhr, status, error) {
             console.error('Error creating to-do list:', xhr.responseText);
@@ -297,8 +299,6 @@ $('#tasker').on('click', function(e) {
 </script>
 
 <script>
-   // $('.research_result').hide();
-
 /* When research is checked, send a jquery ajax request to update todo for the session, set research to 1 */
 $('input[name="research"]').on('change', function() {
     const todoId = $(this).data('id');
@@ -372,12 +372,6 @@ $('.edit-todo').on('click', function(e) {
 });
 
 
-//Add CKEditor to the textarea with class ckeditor
-ClassicEditor.create(document.querySelector('.ckeditor'))
-    .catch(error => {
-        console.error(error);
-    });
-
 
     </script>
 
@@ -390,7 +384,7 @@ let audioChunks = [];
 let isPaused = false;
 let stream = null;
 let recordedTime = 0;
-let maxRecordingTime = 60 * 1000; // 60 seconds in milliseconds
+let maxRecordingTime = 400 * 1000; // 60 seconds in milliseconds
 let countdownInterval = null;
 let remainingTime = maxRecordingTime / 1000; // Initial remaining time in seconds
 
@@ -453,13 +447,16 @@ function startRecording() {
         clearInterval(countdownInterval);
         const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
         playRecordedAudio(audioBlob);
-        showUploadButton(audioBlob);
+        showUploadButton(audioBlob, recordedTime); // Ensure upload button is shown after stop
     });
 }
 
 // Countdown function
 function startCountdown() {
     countdownInterval = setInterval(() => {
+        recordedTime = maxRecordingTime / 1000 - remainingTime;
+        updateProgressBar();
+
         if (!isPaused) {
             remainingTime--;
             statusText.textContent = `Recording... ${remainingTime} seconds remaining`;
@@ -503,20 +500,41 @@ function playRecordedAudio(audioBlob) {
     audioPlayer.src = audioUrl;
     audioPlayer.style.display = 'block';
     audioPlayer.load();
-    statusText.textContent = 'Recording completed. Review the audio below.';
+    statusText.textContent = 'Recording completed. Review the audio.';
 }
 
-// Show upload button and handle upload
-function showUploadButton(audioBlob) {
-    uploadButton.style.display = 'inline-block';
-    uploadButton.onclick = () => {
-        const userConfirmed = confirm('Do you want to upload the recording?');
+// Function to show the upload button and enable audio upload
+function showUploadButton(audioBlob, recordedTime) {
+    // Log the audioBlob details to ensure it's available
+    console.log('Audio Blob is ready:', {
+        type: audioBlob.type,
+        size: audioBlob.size
+    });
+
+    // Ensure the upload button is visible
+    uploadButton.style.display = 'inline-block'; // Show the upload button
+    uploadButton.disabled = false; // Ensure the button is enabled
+
+    // When the upload button is clicked, trigger the upload process
+    uploadButton.addEventListener('click', () => {
+        const userConfirmed = confirm(`Do you want to upload the recording? (Recorded time: ${recordedTime} seconds)`);
         if (userConfirmed) {
-            uploadAudio(audioBlob);
+            statusText.textContent = 'Uploading now...';
+            uploadAudio(audioBlob); // Upload the recorded audio
         } else {
             statusText.textContent = 'Recording not uploaded.';
         }
-    };
+    });
+    
+    // Log to confirm the upload button is displayed
+    console.log('Upload button displayed and ready for interaction.');
+}
+
+//Add a method that updates a bootstrap progress bar to show the time left for recording
+function updateProgressBar() {
+    const progressBar = document.getElementById('time_left');
+    const progress = (remainingTime / (maxRecordingTime / 1000)) * 100;
+    progressBar.style.width = `${progress}%`;
 }
 
 // Upload the recorded audio

@@ -38,9 +38,10 @@ class TodoController extends Controller
     public function store(StoreTodoRequest $request)
     {
         $todo = Todo::create($request->all());
-        $todo->assigned_tos()->sync($request->input('assigned_tos', []));
+        $todo->assigned_tos()->sync(auth()->id());
 
-        return redirect()->route('frontend.todos.index');
+
+        return redirect()->route('frontend.session.recorder', ['id' => $todo->session_id]);
     }
 
     public function edit(Todo $todo)
