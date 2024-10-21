@@ -7,7 +7,7 @@
 
     <div class="mt-4">
 <button id="recordButton" data-id="{{ Request::segment(3) }}" class="btn btn-secondary btn-sm">Record</button>
-<button id="pauseButton" class="btn btn-secondary btn-sm" disabled>Pause</button>
+<button id="pauseButton" class="btn btn-default btn-sm" disabled>Pause</button>
 <button id="stopButton" class="btn btn-danger btn-sm" disabled>Stop</button>
 </div>
 <div class="mt-4"><audio id="audioPlayer" width="100%" src="{{ $audio_url }}" controls class="audioPlayer"></audio>

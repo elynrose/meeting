@@ -1,11 +1,9 @@
-<div class="card">
-            <div class="card-body">
-            <div class="list-group">
+
+            <div class="list-group mb-5">
                     <a href="{{ route('frontend.home') }}" class="list-group-item list-group-item-action">Home</a>
                     <a href="{{ route('frontend.sessions.create') }}" class="list-group-item list-group-item-action"> {{ trans('global.new') }} {{ trans('cruds.session.fields.recording') }}</a>
                 </div>
-            </div>
-        </div>
+      
 
         <div class="card">
             <div class="card-header">

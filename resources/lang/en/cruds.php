@@ -110,7 +110,7 @@ return [
             'total_tasks_helper'   => ' ',
             'tokens_used'          => 'Tokens Used',
             'tokens_used_helper'   => ' ',
-            'recording'            => 'Recording',
+            'recording'            => 'Session',
             'date_created'     => ' Created At',
             'todo_pending'     => 'Pending Tasks',
             'todo_completed'   => 'Hurray! All tasks completed',
@@ -146,7 +146,7 @@ return [
             'total_tasks_helper'   => ' ',
             'tokens_used'          => 'Tokens Used',
             'tokens_used_helper'   => ' ',
-            'recording'            => 'Recording',
+            'recording'            => 'Session',
         ],
     ],
     'todo' => [

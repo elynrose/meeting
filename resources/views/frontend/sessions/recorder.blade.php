@@ -67,7 +67,7 @@ Completed
    
     <div class="card-body" style="background:black; color:white; font-family:arial; height:200pz; overflow-y:scroll;font-size:1em;">  
         @foreach($recordings as $recording)
-    <p><span class="text-muted">{{ $recording->created_at->diffForHumans() }}</span>:  {{ $recording->summary }}</p>    
+    <p class="small"><span class="text-muted">{{ $recording->created_at->diffForHumans() }}</span>:  {{ $recording->summary }}</p>    
    @endforeach  </div>     
   
     </div>
