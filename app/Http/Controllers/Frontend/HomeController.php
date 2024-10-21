@@ -48,7 +48,7 @@ class HomeController
 
         if($sessions->count() > 0){
 
-        $assigned_count = $sessions->sum('todos_total')->whereHas('assigned_tos', function ($query) {
+        $assigned_count = Todo::whereIn('session_id', $sessions->pluck('id'))->whereHas('assigned_tos', function ($query) {
             $query->where('user_id', auth()->id());
         })->count();
 
