@@ -90,15 +90,46 @@ class SessionActionObserver
             $first_session->status = 'Transcribed';
             $first_session->save();
 
-            // Summarize the transcribed text
+           
+           
+           
+            /* Summarize the transcribed text
             $summerizer = new Summerizer();
             $summaryText = $summerizer->summarize($transcribedText);
+            */
 
-            // If no summary text, return
-            if (!$summaryText) {
+            if(empty($transcribedText)){
                 return;
             }
-
+    
+            // Step 3: Summarize the transcribed text using OpenAI completions or chat models
+            $summaryResponse = Http::withHeaders([
+                'Authorization' => "Bearer " . env('OPENAI_KEY'),
+                'Content-Type' => 'application/json',
+            ])->post('https://api.openai.com/v1/chat/completions', [
+                'model' => 'gpt-3.5-turbo', // or 'gpt-4'
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => 'You are a helpful assistant that summarizes text. Results'
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => "Summarize the following text: \n" . $transcribedText
+                    ]
+                ]
+            ]);
+    
+            // Handle the summary response
+            if ($summaryResponse->successful()) {
+                $summaryText = $summaryResponse->json()['choices'][0]['message']['content'];
+                // Process the summary (e.g., display, save, etc.)
+            } 
+            else {
+                // Handle any errors with the summarization
+                \Log::error('Error summarizing text: ' . $summaryResponse->body());
+                return null;
+            }
             // Save the summary text to the session
             if ($summaryText) {
                 $first_session->summary = $summaryText;
