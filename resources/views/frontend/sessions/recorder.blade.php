@@ -57,9 +57,9 @@ Completed
 </div>
 </div>
 
-
+@if($recordings)
 <div class="col-md-12">
-    @if($recordings)
+   
     <div class="card-header">History</div>
 
    
@@ -74,9 +74,9 @@ Completed
 
 </div>
 
-@endif
-</div>
 
+</div>
+@endif
 
 </div>
 
