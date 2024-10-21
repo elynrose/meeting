@@ -94,6 +94,17 @@ class TodoController extends Controller
         return response(null, Response::HTTP_NO_CONTENT);
     }
 
+    public function deleteAll(Request $request)
+    {
+        $todos = Todo::find(request('ids'));
+
+        foreach ($todos as $todo) {
+            $todo->delete();
+        }
+
+        return response(null, Response::HTTP_NO_CONTENT);
+    }
+
     /*
     Write a function that colors a fa-icon based on the date and 
     #status of the todo. If the todo is overdue, the icon should be red. 
@@ -119,4 +130,6 @@ class TodoController extends Controller
         }
         return $color;
     }
+
+    
 }

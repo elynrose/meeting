@@ -19,7 +19,7 @@ use App\Models\Todo;
 use App\Models\Tasker;
 use App\Models\Credit;
 use Auth;
-
+use App\Models\Recording;
 
 
 
@@ -182,7 +182,22 @@ class SessionController extends Controller
     {
         abort_if(Gate::denies('session_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $session->delete();
+           //delete all todos for this session
+           $todos = Todo::where('session_id', $session->id)->get();
+           foreach($todos as $todo){
+               $todo->delete();
+
+               //delete the audio files
+               if($todo->audio_url){
+                   $getAudioFile = new GetAudioFile;
+                   $getAudioFile->deleteFileFromS3($todo->audio_url);
+               }
+           }
+           //delete all the assiged todos
+           $session->assigned_tos()->sync([]);
+           //delete the session
+           
+           $session->delete();
 
         return back();
     }
@@ -192,6 +207,21 @@ class SessionController extends Controller
         $sessions = Session::find(request('ids'));
 
         foreach ($sessions as $session) {
+            //delete all todos for this session
+            $todos = Todo::where('session_id', $session->id)->get();
+            foreach($todos as $todo){
+                $todo->delete();
+
+                //delete the audio files
+                if($todo->audio_url){
+                    $getAudioFile = new GetAudioFile;
+                    $getAudioFile->deleteFileFromS3($todo->audio_url);
+                }
+            }
+            //delete all the assiged todos
+            $session->assigned_tos()->sync([]);
+            //delete the session
+            
             $session->delete();
         }
 
@@ -215,6 +245,7 @@ class SessionController extends Controller
         abort_if(Gate::denies('session_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
        
+        $recordings = Recording::where('session_id', $request->id)->orderBy('created_at', 'desc')->get();
         $session = Session::find($request->id);
         
         //if session user is not the current user, redirect to the dashboard
@@ -270,7 +301,7 @@ class SessionController extends Controller
         $assigned_tos = User::pluck('email', 'id', 'name');
         
 
-        return view('frontend.sessions.recorder', compact('session', 'audio_url', 'todos', 'todo_completeds', 'assigned_tos', 'credits'));
+        return view('frontend.sessions.recorder', compact('session', 'audio_url', 'todos', 'todo_completeds', 'assigned_tos', 'credits', 'recordings'));
     }
 
 
@@ -335,6 +366,7 @@ class SessionController extends Controller
             $todo->due_date = $action['due_date'];
             $todo->time_due = $action['time_due'];
             $todo->completed = 0;
+            $todo->color = $this->getColorBasedOnDateAndStatus($action['due_date'], 0);
             //add assigned to this user
             $todo->save();
             $todo->assigned_tos()->sync(auth()->id());
@@ -346,8 +378,10 @@ class SessionController extends Controller
 
         //Get all todos for this session
         $todos = Todo::where('session_id', $session->id)->whereHas('assigned_tos', function ($query) {
-            $query->where('id', auth()->id());
+        $query->where('id', auth()->id());
         })->orderBy('due_date', 'asc')->get();
+
+        
        
         //Send the items back to the frontend
         $json = response()->json([
@@ -358,6 +392,23 @@ class SessionController extends Controller
 
 
    
+    public function getColorBasedOnDateAndStatus($date, $status){
+        $color = '';
+        if ($date < now()->addDays(5) && $status == 0) {
+            $color = 'gold';
+        } elseif ($date == now()->addDays(3) && $status == 0) {
+            $color = 'gold';
+        } elseif ($date == now() && $status == 0) {
+            $color = 'red';
+        } elseif ($date > now()->subDays(7) && $status == 0) {
+            $color = 'green';
+        } elseif ($date > now()->addDays(15) && $status == 0) {
+            $color = 'green';
+        } elseif ($date < now() && $status == 0) {
+            $color = 'red';
+        }
+        return $color;
+    }
 
 
     public function saveNotes(Request $request)

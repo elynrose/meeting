@@ -29,6 +29,7 @@ class Todo extends Model
         'send_reminder',
         'completed',
         'research',
+        'color',
         'research_result',
         'session_id',
         'ordering',
@@ -68,4 +69,6 @@ class Todo extends Model
     {
         return $this->belongsToMany(User::class);
     } 
+
+    
 }

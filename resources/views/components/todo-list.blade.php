@@ -12,27 +12,10 @@
 
 
     @php
-        $date = $todo->due_date;
-        $status = $todo->status;
-        $color = '';
-
-        if ($date < now()->addDays(5) && $status == 0) {
-            $color = 'gold';
-        } elseif ($date == now()->addDays(3) && $status == 0) {
-            $color = 'gold';
-        } elseif ($date == now() && $status == 0) {
-            $color = 'red';
-        } elseif ($date > now()->subDays(7) && $status == 0) {
-            $color = 'green';
-        } elseif ($date > now()->addDays(15) && $status == 0) {
-            $color = 'green';
-        } elseif ($date < now() && $status == 0) {
-            $color = 'red';
-        }
         $dt = Carbon\Carbon::now();
     @endphp
 
-    <i class="fas @if (!$todo->priority) fa-circle @else  fa-flag  @endif text-muted" style="color:@if (!$todo->priority)  {{ $color }}!important; @else red!important; @endif"></i> <a href="/todos/{{$todo->id}}" data-toggle="modal" data-target="#taskModal{{ $todo->id }}">{{ \Illuminate\Support\Str::words($todo->item, 5) }} <div class="small px-3">
+    <i class="fas @if (!$todo->priority) fa-circle @else  fa-flag  @endif text-muted" style="color:@if (!$todo->priority)  {{ $todo->color ?? 'green' }}!important; @else red!important; @endif"></i> <a href="/todos/{{$todo->id}}" data-toggle="modal" data-target="#taskModal{{ $todo->id }}">{{ \Illuminate\Support\Str::words($todo->item, 5) }} <div class="small px-3">
         @if($dt->diffInDays($todo->due_date) == 0)
             Due soon
         @else
@@ -67,26 +50,3 @@
         </div>
     </form>
 
-    <script>
-/* Write javascript for when the delete button is pressed, delete the item and hide the div */
-$(function(){
-    $('.trash').on('click', function(e) {
-        e.preventDefault();
-        const id = $(this).data('id');
-        $.ajax({
-            url: `/todos/${id}`,
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            success: function(response) {
-                $(this).closest('.todo-item').fadeOut();
-            },
-            error: function(xhr, status, error) {
-                alert('Error deleting todo. Please try again.');
-                //console.error('Error deleting todo:', xhr.responseText);
-            }
-        });
-    });
-});
-    </script>

@@ -15,6 +15,10 @@ class Summerizer extends Model
 
     public function summarize($transcriptionText){
 
+        if(empty($transcriptionText)){
+            return;
+        }
+
         // Step 3: Summarize the transcribed text using OpenAI completions or chat models
         $summaryResponse = Http::withHeaders([
             'Authorization' => "Bearer " . env('OPENAI_KEY'),

@@ -21,15 +21,6 @@
 @component('components.summary-notes', ['session' => $session])
 @endcomponent
 
-<div class="col-md-12">
-    <div class="card">
-        <div class="card-header">Summary</div>
-    
-    <div class="card-body">
-        {{ $session->summary }}    
-    </div>
-</div>
-</div>
 <!-- Pending To-Do List Card -->
 <div class="col-md-6" id="pending">
 <div class="card">
@@ -37,7 +28,14 @@
 Pending
 </div>
 <div class="card-body todo-list">
-<a id="tasker" href="/create-todo-list/{{ $session->id }}"><i class="fas fa-plus"></i> Suggest Tasks</a>
+<div class="row">
+    <div class="col-md-9 col-sm-8">
+    <a id="tasker" href="/create-todo-list/{{ $session->id }}"><i class="fas fa-plus"></i> Suggest Tasks</a>
+    </div>
+    <div class="col-md-3 col-sm-4">
+      <label for="clear_all"> <input type="checkbox" id="clear_all" name="clear_all"> Clear All </label>
+    </div>
+</div>
 <hr>
   @component('components.todo-list', ['todos' => $todos])
   @endcomponent
@@ -58,6 +56,25 @@ Completed
 </div>
 </div>
 </div>
+
+
+<div class="col-md-12">
+    @if($recordings)
+    <div class="card-header">History</div>
+
+   
+    <div class="card">
+   
+    <div class="card-body" style="background:black; color:white; font-family:arial; height:200pz; overflow-y:scroll;font-size:1em;">  
+        @foreach($recordings as $recording)
+    <p><span class="text-muted">{{ $recording->created_at->diffForHumans() }}</span>:  {{ $recording->summary }}</p>    
+   @endforeach  </div>     
+  
+    </div>
+
+</div>
+
+@endif
 </div>
 
 
@@ -70,25 +87,25 @@ Completed
 <!-- Modal Template for Summary -->
 <div class="modal fade" id="summaryTextModal" tabindex="-1" role="dialog" aria-labelledby="summaryTextModal" aria-hidden="true">
 <div class="modal-dialog" role="document">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title" id="summaryTextModalTitle">Summary</h5>
-<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-<span aria-hidden="true">&times;</span>
-</button>
-</div>
-<div class="modal-body" id="summaryText">
-<p id="summaryText" class="summaryDiv">
-@if($session->summary)
-{{ $session->summary }}
-@else
-No summary available.
-@endif
+    <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title" id="summaryTextModalTitle">Summary</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+    <div class="modal-body" id="summaryText">
+    <p id="summaryText" class="summaryDiv">
+    @if($session->summary)
+    {{ $session->summary }}
+    @else
+    No summary available.
+    @endif
 
-</p>
+    </p>
 
-</div>
-</div>
+    </div>
+    </div>
 </div>
 
    
@@ -135,7 +152,7 @@ $(function() {
     _token: '{{ csrf_token() }}' // Laravel CSRF protection
     },
     success: function(response) {
-    location.reload();
+    //location.reload();
     },
     error: function() {
     console.error('Error updating task status');
@@ -147,25 +164,57 @@ $(function() {
     
     // AJAX form submission for each task's comment
     $('#commentForm1').on('submit', function(e) {
-    e.preventDefault();
-    const comment = $('#comment1').val();
-    $.ajax({
-    url: '/submit-comment',
-    method: 'POST',
-    data: {
-    taskId: 1,
-    comment: comment,
-    _token: '{{ csrf_token() }}'
-    },
-    success: function(response) {
-    alert('Comment added for task 1');
-    },
-    error: function() {
-    alert('Error adding comment');
-    }
+        e.preventDefault();
+        const comment = $('#comment1').val();
+        $.ajax({
+            url: '/submit-comment',
+            method: 'POST',
+            data: {
+                taskId: 1,
+                comment: comment,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                alert('Comment added for task 1');
+            },
+            error: function() {
+                alert('Error adding comment');
+            }
+        });
     });
+
+    // If #clear_all is checked, ask user if they want to delete all the tasks
+    $('#clear_all').on('change', function() {
+        if ($(this).is(':checked')) {
+            const userConfirmed = confirm('Are you sure you want to delete all tasks?');
+            if (userConfirmed) {
+                const taskIds = [];
+                $('.todo-item').each(function() {
+                    taskIds.push($(this).data('id'));
+                });
+
+                $.ajax({
+                    url: '{{ route("frontend.todos.deleteAll") }}',
+                    method: 'POST',
+                    data: {
+                        ids: taskIds,
+                        _token: '{{ csrf_token() }}' // Laravel CSRF protection
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        alert('All tasks deleted successfully');
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        alert('Error deleting tasks');
+                        console.log('Error deleting tasks' + xhr.responseText);
+                    }
+                });
+            } else {
+                $(this).prop('checked', false);
+            }
+        }
     });
-    
     $('#commentForm2').on('submit', function(e) {
     e.preventDefault();
     const comment = $('#comment2').val();
@@ -289,18 +338,19 @@ $('#tasker').on('click', function(e) {
         
         //Loop through the todos and append each to the list
         $('#pending .todo-list').empty();
-        response.todo.forEach(function(todo) {
+      /*  response.todo.forEach(function(todo) {
             const todoItem = `
                  <div class="todo-item ui-sortable-handle" data-id="${ todo.id }">
-                 <i class="fas fa-circle text-muted" style="color:#ccc!important;"></i> <a href="/todos/${ todo.id }" data-toggle="modal" data-target="#taskModal${ todo.id }">${ todo.item }
+                 <i class="fas fa-circle text-muted" style="color:${todo.color}!important;"></i> <a href="/todos/${ todo.id }" data-toggle="modal" data-target="#taskModal${ todo.id }">${ todo.item }
                   <div class="small px-3">${ todo.due_date }</div></a>
                 </div>
                 `;
           
             $('#pending .todo-list').append(todoItem);
         });
+      
         $('#tasker').html('<i class="fas fa-plus"></i> Suggest Tasks');
-
+        */
         location.reload();
         },
         error: function(xhr, status, error) {
@@ -364,7 +414,7 @@ $('.autopost').on('submit', function(e) {
         success: function(response) {
             $('.autopost .alert').removeClass('alert-success').text('');
             $('.autopost .alert').addClass('alert-success').text('Form submitted successfully.').show();
-            location.reload()
+           // location.reload()
         },
         error: function(xhr, status, error) {
             $('.autopost .alert').addClass('alert-danger').text('Error submitting form:', xhr.responseText).show();
@@ -386,9 +436,6 @@ $('.edit-todo').on('click', function(e) {
 
 
     </script>
-
-
-
 
 <script>
 let mediaRecorder;
@@ -579,8 +626,7 @@ function uploadAudio(audioBlob) {
         success: function(data) {
             console.log(data);
             //parse the response and display the message
-            let response = $.parseJSON(data);
-            console.log(response);
+            location.reload();
         },
         error: function(xhr) {
             console.error('Upload failed:', xhr.responseText);
@@ -596,7 +642,8 @@ function toggleButtons(isRecording) {
     stopButton.disabled = !isRecording;
 }
 
-
 </script>
+
+
 
 @endsection

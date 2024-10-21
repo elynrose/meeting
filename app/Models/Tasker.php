@@ -14,6 +14,10 @@ class Tasker extends Model
 
     public function createTasks($text)
     {
+        if(!$text){
+            return;
+        }
+        
         try {
             $convertToActionableJsonList = Http::withHeaders([
                 'Authorization' => "Bearer " . env('OPENAI_KEY'),

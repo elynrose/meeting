@@ -55,6 +55,10 @@ class StoreTodoRequest extends FormRequest
                 'integer',
                 'nullable',
             ],
+            'color' => [
+                'string',
+                'nullable',
+            ],
             'session_id' => [
                 'required',
                 'integer',

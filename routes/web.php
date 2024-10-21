@@ -96,6 +96,7 @@ Route::group(['as' => 'frontend.', 'namespace' => 'Frontend', 'middleware' => ['
     // Todo
     Route::delete('todos/destroy', 'TodoController@massDestroy')->name('todos.massDestroy');
     Route::resource('todos', 'TodoController');
+    Route::post('todos/delete-all', 'TodoController@deleteAll')->name('todos.deleteAll');
 
     // Payments
     Route::delete('payments/destroy', 'PaymentsController@massDestroy')->name('payments.massDestroy');
@@ -121,5 +122,7 @@ Route::group(['namespace' => 'Auth', 'middleware' => ['auth', '2fa']], function 
         Route::get('two-factor', 'TwoFactorController@show')->name('twoFactor.show');
         Route::post('two-factor', 'TwoFactorController@check')->name('twoFactor.check');
         Route::get('two-factor/resend', 'TwoFactorController@resend')->name('twoFactor.resend');
+        Route::get('/auth/redirect', 'LoginController@redirectToProvider');
+        Route::get('/auth/callback', 'LoginController@handleProviderCallback');
     }
 });
