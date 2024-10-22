@@ -5,7 +5,7 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                {{ trans('global.my_profile') }}
+            <h4 class="poppins-extrabold"><span style="color:#ff5a0b;">15</span>Daily</h4>
             </div>
 
             <div class="card-body">

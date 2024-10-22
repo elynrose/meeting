@@ -1,6 +1,30 @@
 body {
   background:rgb (223, 223, 207);
 }
+
+a.nav-link {
+  color: #000;
+}
+
+a.link {
+  color: #000;
+}
+
+a.link:hover {
+  color: #000;
+}
+
+a.link:active {
+  color: #000;
+}
+
+a.link:visited {
+  color: #ff5a0b;
+}
+
+a.link:focus {
+  color: #ff5a0b;
+}
 .poppins-thin {
     font-family: "Poppins", sans-serif;
     font-weight: 100;
@@ -166,7 +190,7 @@ body {
     background-color: #ff5a0b;
     border-color: #ff5a0b;
     }
-    
+
 
 
     
@@ -249,3 +273,32 @@ body {
     }
 
     
+            /* Custom styling */
+            header {
+              color: black;
+              padding: 80px 0;
+          }
+          header h1 {
+              font-size: 3em;
+          }
+          .intro p {
+              font-size: 1.2em;
+          }
+          .features .feature-item {
+              margin-bottom: 30px;
+          }
+          .signup {
+              background: #ff5a0b;
+              color: white;
+          }
+          .signup form input[type="email"] {
+              width: 100%;
+              max-width: 400px;
+              margin-bottom: 15px;
+          }
+          footer {
+              background: #111111;
+              color: white;
+              text-align: center;
+              padding: 20px 0;
+          }

@@ -29,10 +29,10 @@ Pending
 </div>
 <div class="card-body todo-list">
 <div class="row">
-    <div class="col-md-9 col-sm-8">
+    <div class="col-md-9 col-sm-6 col">
     <a id="tasker" href="/create-todo-list/{{ $session->id }}"><i class="fas fa-plus"></i> Suggest Tasks</a>
     </div>
-    <div class="col-md-3 col-sm-4">
+    <div class="col-md-3 col-sm-6 col">
       <label for="clear_all"> <input type="checkbox" id="clear_all" name="clear_all"> Clear All </label>
     </div>
 </div>

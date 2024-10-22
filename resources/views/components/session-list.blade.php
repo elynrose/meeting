@@ -21,9 +21,9 @@
                                     </div>
                         @foreach($sessions as $session)
                             <li class="list-group-item list-group-item-action">
-                                <a href="{{ route('frontend.session.recorder', $session->id) }}">
+                               <a href="{{ route('frontend.session.recorder', $session->id) }}">
                               <div class="row">
-                              <div class="mb-1 col-md-12 col-sm-12 small">{{ $session->name }}</div>
+                              <div class="mb-1 col-md-12 col-sm-12"><h6>{{ $session->name }}</h6></div>
                               </div>
                                     <div class="row">
                                         <div class="mb-1 col-md-5 col-sm-12 small">@if($session->todos_pending==0) {{ trans('cruds.session.custom.todo_completed') }}  @else <i class="fas fa-warning gold"></i> {{ $session->todos_pending ?? 'No' }} {{ trans('cruds.session.custom.todo_pending') }} @endif</div>

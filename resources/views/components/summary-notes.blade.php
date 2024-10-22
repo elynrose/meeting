@@ -4,9 +4,8 @@
 <div class="card summary-text" id="summary">
 <div class="card-body">
 <nav class="nav nav-pills nav-justified">
-    <a class="nav-link" href="#"><i class="fas fa-edit"></i> Edit</a>
-    <a class="nav-link" href="#" data-toggle="modal" data-target="#originalTextModal"><i class="fas fa-bullhorn"></i> Original Text</a>
-    <a class="nav-link" href="#" data-toggle="modal" data-target="#summaryTextModal"><i class="fas fa-book"></i> Summary</a>
+    <a class="nav-link col" href="#" data-toggle="modal" data-target="#originalTextModal"><i class="fas fa-bullhorn"></i> Original Text</a>
+    <a class="nav-link col" href="#" data-toggle="modal" data-target="#summaryTextModal"><i class="fas fa-book"></i> Summary</a>
 
 </nav>
 <form id="commentForm3" class="shadow">

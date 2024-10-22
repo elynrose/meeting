@@ -111,11 +111,11 @@ class SessionActionObserver
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => 'You are a helpful assistant that summarizes text. Results'
+                        'content' => 'You are a helpful assistant. You summarize information given to you.'
                     ],
                     [
                         'role' => 'user',
-                        'content' => "Summarize the following text: \n" . $transcribedText
+                        'content' => "Summarize the following: \n" . $transcribedText
                     ]
                 ]
             ]);
