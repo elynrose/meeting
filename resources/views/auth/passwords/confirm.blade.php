@@ -5,7 +5,10 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header">{{ __('Confirm Password') }}</div>
+                <div class="card-header">
+                <h4 class="poppins-extrabold"><span style="color:#ff5a0b;">15</span>Daily</h4>
+
+                </div>
 
                 <div class="card-body">
                     <div class="text-center mb-3">

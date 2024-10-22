@@ -49,7 +49,7 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <p>&copy; 2024 15Daily. All rights reserved.</p>
+            <p class="small text-center">&copy; 2024 15Daily. All rights reserved.</p>
         </div>
     </footer>
 @endsection
