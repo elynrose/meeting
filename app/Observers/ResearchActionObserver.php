@@ -23,7 +23,7 @@ class ResearchActionObserver
            
             if ($model->research) {
             // Run research on the topic
-            $topic = 'Title: '.$model->item.' Summary: '.$model->summary.' Notes: '.$model->notes;
+            $topic = 'Title: '.$model->item.' Summary: '.$model->summary.' Notes: '.$model->transcription.' Notes: '.$model->notes;  
             //Get the research result
             $researcher = new Researcher();
             $article = $researcher->research($topic, $selected_agent='Researcher');
