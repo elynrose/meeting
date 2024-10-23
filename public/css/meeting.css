@@ -288,7 +288,7 @@ a.link:focus {
               margin-bottom: 30px;
           }
           .signup {
-              background: #ff5a0b;
+              background: #ff5a0b!important;
               color: white;
           }
           .signup form input[type="email"] {
@@ -297,7 +297,7 @@ a.link:focus {
               margin-bottom: 15px;
           }
           footer {
-              background: #111111;
+              background: #111111!important;
               color: white;
               text-align: center;
               padding: 20px 0;
