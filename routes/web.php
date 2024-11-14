@@ -40,7 +40,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     Route::delete('sessions/destroy', 'SessionController@massDestroy')->name('sessions.massDestroy');
     Route::post('sessions/media', 'SessionController@storeMedia')->name('sessions.storeMedia');
     Route::post('sessions/ckmedia', 'SessionController@storeCKEditorImages')->name('sessions.storeCKEditorImages');
-    Route::resource('sessions', 'SessionController')->exept('show');
+    Route::resource('sessions', 'SessionController')->except('show');
 
     // Todo
     Route::delete('todos/destroy', 'TodoController@massDestroy')->name('todos.massDestroy');
