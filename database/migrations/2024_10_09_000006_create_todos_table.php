@@ -15,6 +15,7 @@ class CreateTodosTable extends Migration
             $table->date('due_date')->nullable();
             $table->time('time_due')->nullable();
             $table->integer('research')->default(0)->nullable();
+            $table->string('role')->nullable();
             $table->integer('ordering')->nullable();
             $table->string('color')->default('green')->nullable();
             $table->integer('priority')->nullable();

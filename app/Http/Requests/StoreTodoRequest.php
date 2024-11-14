@@ -29,6 +29,10 @@ class StoreTodoRequest extends FormRequest
                 'date_format:' . config('panel.time_format'),
                 'nullable',
             ],
+            'role' => [
+                'string',
+                'nullable',
+            ],
             'assigned_tos.*' => [
                 'integer',
             ],

@@ -26,9 +26,9 @@ class ResearchActionObserver
             $topic = 'Title: '.$model->item.' Summary: '.$model->summary.' Notes: '.$model->transcription.' Notes: '.$model->notes;  
             //Get the research result
             $researcher = new Researcher();
-            $article = $researcher->research($topic, $selected_agent='Researcher');
+            $article = $researcher->research($topic, $selected_agent=$model->role);
             if(!$article){
-                return json_encode(['error'=>'No research result found']);
+                return json_encode(['error'=>'No result found']);
                 \Log::info('No research result found');
             } else {
             //Save the research result to the database

@@ -26,13 +26,24 @@
                             <p class="badge badge-info">No one assigned</p>
                         @endif
 </p>
+                            <!--Add a text field to suggest what ai should do-->
+                            <div class="form-group mt-3">
+                                <label for="role" class="text-muted">Select an agent to help with this.</label>
+                                <input class="form-control" name="role_{{$todo->id}}" id="role_{{$todo->id}}" value="">
+                                  <!--  <option value="">Select an agent</option>
+                                    @foreach(App\Models\Researcher::AGENTS as $key => $value)
+                                    <option value="{{ $value }}" @if($todo->role == $key) selected @endif>{{ $key }}</option>
+                                    @endforeach
+                                </select>-->
+                            </div>
+                            
                         <div class="form-check form-check-inline">
                         <input class="form-check form-check-input" type="checkbox" id="research" data-id="{{ $todo->id }}" name="research" value="{{ $todo->research }}"  @if($todo->research) checked @else @endif>   
                         <span class="small text-muted mt-1">@if($todo->research==1 && empty($todo->research_result)) <i id="researching{{ $todo->id }}" class="fas fa-spinner fa-spin spin{{ $todo->id }}"></i><span id="research_text{{ $todo->id }}"> Working...</span> @elseif($todo->research==0 && empty($todo->research_result)) <span id="research_text{{ $todo->id }}"> Automate will attempt to do research on this topic.</span> @elseif($todo->research==1 && !empty($todo->research_result)) Your research has been completed  @elseif($todo->research==0 && !empty($todo->research_result)) The research has been completed. Click on the button below.  @endif</span>
                     </div>
 
                     @if(!empty($todo->research_result)) 
-                    <div class="mt-3" ><a href="/pdf-download/{{ $todo->id }}" target="_blank" id="research_result{{ $todo->id }}" class="btn btn-xs btn-info research_result">Download Research</a></div>
+                    <div class="mt-3" id="download_{{ $todo->id }}"><a href="/pdf-download/{{ $todo->id }}" target="_blank" id="research_result{{ $todo->id }}" class="btn btn-xs btn-info research_result">Download Research</a></div>
                     @endif
                     </div>
 

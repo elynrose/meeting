@@ -363,20 +363,31 @@ $('#tasker').on('click', function(e) {
 <script>
 /* When research is checked, send a jquery ajax request to update todo for the session, set research to 1 */
 $('input[name="research"]').on('change', function() {
+    
     const todoId = $(this).data('id');
     const isChecked = $(this).is(':checked');
+    var role = $('#role_'+todoId).val();
 
     if(isChecked || !isChecked) {
-        if (!confirm('Unchecking this will delete any previous research done on this topic. Are you sure you want to proceed?')) {
+        if (!confirm('Checking or Unchecking this will delete any previous research done on this topic. Are you sure you want to proceed?')) {
             $(this).prop('checked', true);
+            $('#download_'+todoId).hide();
             return;
         }
     }
+    if(role == '') {
+        alert('Please select a role to assist you.');
+        $(this).prop('checked', false);
+      
+        return;
+    }
+
     $.ajax({
         url: '/update-todo-research',
         method: 'POST',
         data: {
             id: todoId,
+            role: role,
             is_checked: isChecked,
             _token: '{{ csrf_token() }}'
         },
@@ -385,6 +396,7 @@ $('input[name="research"]').on('change', function() {
                 $('#researching' + todoId).show();
                 $('.spin' + todoId).show();
                 $('#research_text' + todoId).text(' Working...');
+                location.reload();
             } else {
                 $('#researching' + todoId).hide();
                 $('.spin' + todoId).hide();

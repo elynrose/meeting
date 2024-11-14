@@ -24,6 +24,7 @@ class Todo extends Model
     protected $fillable = [
         'item',
         'note',
+        'role',
         'due_date',
         'time_due',
         'send_reminder',

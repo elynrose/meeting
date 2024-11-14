@@ -70,8 +70,7 @@
                                 @endif
                                 <span class="help-block">{{ trans('cruds.todo.fields.send_reminder_helper') }}</span>
                             </div>
-
-                           
+                       
                             <div class="form-group">
                             <input type="hidden" name="assigned_tos[]" value="{{ auth()->user()->id }}">
 

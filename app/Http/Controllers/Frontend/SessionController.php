@@ -467,7 +467,8 @@ class SessionController extends Controller
     {
         $todoId = $request->id;
         $isChecked = $request->is_checked;
-
+        $role = $request->role ?? 'You are professional assistant. Read the information and suggest ideas or a solution';
+        
         \Log::info('Is Checked: ' . $isChecked);
      
         // Fetch the to-do from the database
@@ -477,9 +478,11 @@ class SessionController extends Controller
         //If the research is set to true it means the checkbox is checked and vise versa
         if($isChecked == 'true'){
             $todo->research = 1;
+            $todo->role = $request->role;
         } else {
          //   $todo->research_result = null;
             $todo->research = 0;
+            $todo->role = $request->role;
         }
         
         $todo->save();

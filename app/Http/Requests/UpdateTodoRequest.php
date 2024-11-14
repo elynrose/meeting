@@ -37,6 +37,10 @@ class UpdateTodoRequest extends FormRequest
                 'string',
                 'nullable',
             ],
+            'role' => [
+                'string',
+                'nullable',
+            ],
             'assigned_tos.*' => [
                 'integer',
             ],
