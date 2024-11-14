@@ -28,7 +28,7 @@
 </p>
                             <!--Add a text field to suggest what ai should do-->
                             <div class="form-group mt-3">
-                                <label for="role" class="text-muted">Select an agent to help with this.</label>
+                                <label for="role" class="text-muted">Describe an agent to help with this todo, example: Travel Agent.</label>
                                 <input class="form-control" name="role_{{$todo->id}}" id="role_{{$todo->id}}" value="">
                                   <!--  <option value="">Select an agent</option>
                                     @foreach(App\Models\Researcher::AGENTS as $key => $value)
